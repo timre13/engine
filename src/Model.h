@@ -5,15 +5,44 @@
 #include <unordered_map>
 #include <memory>
 
-class Model
+#define VERTEX_ATTR_I_VERTEX 0
+#define VERTEX_ATTR_I_UV 1
+#define VERTEX_ATTR_I_NORMAL 2
+
+class Model final
 {
+public:
+    enum class State
+    {
+        Uninitialized,
+        Ok,
+        OpenFailed,
+        ParseFailed,
+    };
+
 private:
-    std::vector<float> m_vertices;
-    std::vector<float> m_textureCoords;
+    State m_state{State::Uninitialized};
+    size_t m_numOfVertices{};
+    std::vector<float> m_vboData;
+    uint m_vaoIndex{};
+    uint m_vboIndex{};
+
+    bool _parseObjFile(const std::string& filename);
 
 public:
     Model(){}
+    // Copy ctor, copy assignment op
+    Model(const Model&) = delete;
+    Model& operator=(const Model&) = delete;
+    // Move ctor, move assignment op
+    Model(Model&&) = delete;
+    Model& operator=(Model&&) = delete;
 
     bool open(const std::string& filePath);
+    inline State getState() const { return m_state; }
+
+    void draw();
+
+    ~Model();
 };
 
