@@ -13,6 +13,27 @@
 //#define WINDOW_FULLSCREEN_MODE SDL_WINDOW_FULLSCREEN_DESKTOP
 #define WINDOW_FULLSCREEN_MODE 0
 
+void GLAPIENTRY debugMessageCallback(
+        GLenum, GLenum type, GLuint, GLenum severity,
+        GLsizei, const GLchar* message, const void*)
+{
+    Logger::warn << "Message [";
+    switch (type)
+    {
+    case GL_DEBUG_TYPE_ERROR: Logger::warn << "other"; break;
+    case GL_DEBUG_TYPE_PERFORMANCE: Logger::warn << "performance"; break;
+    case GL_DEBUG_TYPE_PORTABILITY: Logger::warn << "portability"; break;
+    case GL_DEBUG_TYPE_POP_GROUP: Logger::warn << "pop group"; break;
+    case GL_DEBUG_TYPE_PUSH_GROUP: Logger::warn << "push group"; break;
+    case GL_DEBUG_TYPE_MARKER: Logger::warn << "marker"; break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: Logger::warn << "undefined behavior"; break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: Logger::warn << "deprecated behavior"; break;
+    default: Logger::warn << "unknown"; break;
+    }
+    Logger::warn << "] severity = 0x" << std::hex << severity <<
+        " :\n\t" << message << Logger::End;
+}
+
 int main()
 {
     if (SDL_Init(SDL_INIT_VIDEO))
@@ -62,6 +83,11 @@ int main()
         return 1;
     }
     Logger::verb << "Initialized GLEW" << Logger::End;
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(debugMessageCallback, 0);
+
+    Logger::log << "Using OpenGL " << glGetString(GL_VERSION) << Logger::End;
 
 
     ShaderProgram shader;
