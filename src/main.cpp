@@ -5,6 +5,7 @@
 #include <SDL2/SDL_opengl.h>
 #include "Logger.h"
 #include "ShaderProgram.h"
+#include "Camera.h"
 #include "Model.h"
 
 #define INITIAL_WIN_W 1500
@@ -68,8 +69,18 @@ int main()
         return 1;
     shader.use();
 
+    int winW, winH;
+    SDL_GetWindowSize(window, &winW, &winH);
+    Camera camera{{0.0f, 0.0f, 0.0f}, (float)winW/winH};
+    camera.updateShaderUniforms(shader.getId());
+
     Model model;
-    model.open("../models/cube.obj");
+    if (model.open("../models/monkey.obj"))
+        return 1;
+
+    auto modelMatrix = glm::mat4(1.0f);
+    modelMatrix = glm::translate(modelMatrix, {0.0f, 0.0f, 0.0f});
+    glUniformMatrix4fv(glGetUniformLocation(shader.getId(), "modelMat"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     bool shouldQuit = false;
     bool isInWireframeMode = false;
@@ -112,9 +123,38 @@ int main()
         if (shouldQuit)
             break;
 
+        auto keyboardState = SDL_GetKeyboardState(nullptr);
+        if (keyboardState[SDL_SCANCODE_W])
+            camera.moveForward(0.1f);
+        else if (keyboardState[SDL_SCANCODE_S])
+            camera.moveBackwards(0.1f);
+        if (keyboardState[SDL_SCANCODE_A])
+            camera.moveLeft(0.1f);
+        else if (keyboardState[SDL_SCANCODE_D])
+            camera.moveRight(0.1f);
+
+        // TODO: Remove these lines when things work
+        {
+            auto camPos = camera.getPosition();
+            std::string title = std::to_string(camPos.x) + ", " + std::to_string(camPos.y) + ", " + std::to_string(camPos.z);
+            SDL_SetWindowTitle(window, title.c_str());
+        }
+
+        camera.updateShaderUniforms(shader.getId());
+
+        // TODO: Remove these lines when things work
+        {
+            camera.setYawDeg(camera.getYawDeg() + 1);
+            camera.setPitchDeg(camera.getPitchDeg() + 1);
+            camera.recalculateFrontVector();
+        }
+
 
         glClearColor(0.34f, 0.406f, 0.642f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+
+        model.draw();
 
 
         SDL_GL_SwapWindow(window);

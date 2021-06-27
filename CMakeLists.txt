@@ -19,5 +19,6 @@ ADD_EXECUTABLE(engine
     src/ShaderProgram.cpp
     src/GameObject.cpp
     src/Model.cpp
+    src/Camera.cpp
 )
 
