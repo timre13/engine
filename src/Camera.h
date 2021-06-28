@@ -16,21 +16,29 @@ private:
 public:
     Camera(const glm::vec3& position, float windowAspectRatio);
 
-    void moveForward(float amount);
-    void moveBackwards(float amount);
-    void moveLeft(float amount);
-    void moveRight(float amount);
+    inline void moveForward(float amount, int frameTime) { m_position += m_frontVector * (amount * frameTime); }
+    inline void moveBackwards(float amount, int frameTime) { m_position -= m_frontVector * (amount * frameTime); }
+    inline void moveLeft(float amount, int frameTime) { m_position -= glm::normalize(glm::cross(m_frontVector, m_upVector)) * (amount * frameTime); }
+    inline void moveRight(float amount, int frameTime) { m_position += glm::normalize(glm::cross(m_frontVector, m_upVector)) * (amount * frameTime); }
 
     void recalculateFrontVector();
+    inline void setWindowAspectRatio(float rat) { m_projectionMatrix = glm::perspective(glm::radians(m_fovDeg), rat, 0.1f, 100.0f); }
 
     void updateShaderUniforms(uint shaderId);
 
     inline void setYawDeg(float val) { m_yawDeg = val; }
     inline float getYawDeg() { return m_yawDeg; }
 
-    inline void setPitchDeg(float val) { m_pitchDeg = val; }
+    inline void setPitchDeg(float val)
+    {
+        m_pitchDeg = val;
+        if (m_pitchDeg > 89.9)
+            m_pitchDeg = 89.9;
+        if (m_pitchDeg < -89.9)
+            m_pitchDeg = -89.9;
+    }
     inline float getPitchDeg() { return m_pitchDeg; }
 
-    const glm::vec3& getPosition() const { return m_position; }
+    inline const glm::vec3& getPosition() const { return m_position; }
 };
 

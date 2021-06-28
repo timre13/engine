@@ -12,6 +12,8 @@
 #define INITIAL_WIN_H 1000
 //#define WINDOW_FULLSCREEN_MODE SDL_WINDOW_FULLSCREEN_DESKTOP
 #define WINDOW_FULLSCREEN_MODE 0
+#define MOUSE_SENS 0.1f
+#define USE_VSYNC 1
 
 void GLAPIENTRY debugMessageCallback(
         GLenum, GLenum type, GLuint, GLenum severity,
@@ -31,7 +33,7 @@ void GLAPIENTRY debugMessageCallback(
     default: Logger::warn << "unknown"; break;
     }
     Logger::warn << "] severity = 0x" << std::hex << severity <<
-        " :\n\t" << message << Logger::End;
+        " :\n\t" << message << std::dec << Logger::End;
 }
 
 int main()
@@ -69,10 +71,19 @@ int main()
         Logger::err << "Failed to create OpenGL context: " << SDL_GetError() << Logger::End;
         return 1;
     }
+    bool isVSyncActive = false;
+#if USE_VSYNC
     if (SDL_GL_SetSwapInterval(1))
     {
         Logger::warn << "Failed to use V-Sync" << Logger::End;
+        isVSyncActive = false;
     }
+    else
+    {
+        Logger::verb << "Using V-Sync" << Logger::End;
+        isVSyncActive = true;
+    }
+#endif
     Logger::verb << "Created and set up context" << Logger::End;
 
     glewExperimental = true;
@@ -97,7 +108,7 @@ int main()
 
     int winW, winH;
     SDL_GetWindowSize(window, &winW, &winH);
-    Camera camera{{0.0f, 0.0f, 0.0f}, (float)winW/winH};
+    Camera camera{{0.0f, 0.0f, 5.0f}, (float)winW/winH};
     camera.updateShaderUniforms(shader.getId());
 
     Model model;
@@ -108,10 +119,17 @@ int main()
     modelMatrix = glm::translate(modelMatrix, {0.0f, 0.0f, 0.0f});
     glUniformMatrix4fv(glGetUniformLocation(shader.getId(), "modelMat"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
+    uint32_t lastTime{};
+    uint32_t deltaTime{};
+    SDL_ShowCursor(false);
     bool shouldQuit = false;
     bool isInWireframeMode = false;
     while (!shouldQuit)
     {
+        uint32_t currentTime = SDL_GetTicks();
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
         SDL_Event event;
         while (SDL_PollEvent(&event) && !shouldQuit)
         {
@@ -127,6 +145,7 @@ int main()
                 {
                 case SDL_WINDOWEVENT_SIZE_CHANGED:
                     glViewport(0, 0, event.window.data1, event.window.data2);
+                    camera.setWindowAspectRatio((float)event.window.data1/event.window.data2);
                     break;
                 }
                 break;
@@ -149,32 +168,43 @@ int main()
         if (shouldQuit)
             break;
 
-        auto keyboardState = SDL_GetKeyboardState(nullptr);
-        if (keyboardState[SDL_SCANCODE_W])
-            camera.moveForward(0.1f);
-        else if (keyboardState[SDL_SCANCODE_S])
-            camera.moveBackwards(0.1f);
-        if (keyboardState[SDL_SCANCODE_A])
-            camera.moveLeft(0.1f);
-        else if (keyboardState[SDL_SCANCODE_D])
-            camera.moveRight(0.1f);
+        SDL_SetWindowTitle(window, ("OpenGL Engine - frame time = " + std::to_string(deltaTime) + "ms, V-Sync " + (isVSyncActive ? "On" : "Off")).c_str());
 
-        // TODO: Remove these lines when things work
+        int windowW, windowH;
+        SDL_GetWindowSize(window, &windowW, &windowH);
+
+        // Cursor movement handling
         {
-            auto camPos = camera.getPosition();
-            std::string title = std::to_string(camPos.x) + ", " + std::to_string(camPos.y) + ", " + std::to_string(camPos.z);
-            SDL_SetWindowTitle(window, title.c_str());
+            int windowCenterX = windowW / 2;
+            int windowCenterY = windowH / 2;
+
+            int cursorX, cursorY;
+            SDL_GetMouseState(&cursorX, &cursorY);
+
+            if (cursorX != windowCenterX || cursorY != windowCenterY)
+            {
+                camera.setYawDeg(camera.getYawDeg() + (cursorX - windowCenterX) * MOUSE_SENS);
+                camera.setPitchDeg(camera.getPitchDeg() + (windowCenterY - cursorY) * MOUSE_SENS);
+                SDL_WarpMouseInWindow(window, windowCenterX, windowCenterY);
+                camera.recalculateFrontVector();
+            }
+        }
+
+        // Keypress handling
+        {
+            constexpr float cameraSpeed = 0.01f;
+            auto keyboardState = SDL_GetKeyboardState(nullptr);
+            if (keyboardState[SDL_SCANCODE_W])
+                camera.moveForward(cameraSpeed, deltaTime);
+            else if (keyboardState[SDL_SCANCODE_S])
+                camera.moveBackwards(cameraSpeed, deltaTime);
+            if (keyboardState[SDL_SCANCODE_A])
+                camera.moveLeft(cameraSpeed, deltaTime);
+            else if (keyboardState[SDL_SCANCODE_D])
+                camera.moveRight(cameraSpeed, deltaTime);
         }
 
         camera.updateShaderUniforms(shader.getId());
-
-        // TODO: Remove these lines when things work
-        {
-            camera.setYawDeg(camera.getYawDeg() + 1);
-            camera.setPitchDeg(camera.getPitchDeg() + 1);
-            camera.recalculateFrontVector();
-        }
-
 
         glClearColor(0.34f, 0.406f, 0.642f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);

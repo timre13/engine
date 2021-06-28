@@ -8,7 +8,7 @@
 Camera::Camera(const glm::vec3& position, float windowAspectRatio)
     : m_position{position}
 {
-    m_projectionMatrix = glm::perspective(glm::radians(m_fovDeg), windowAspectRatio, 0.1f, 100.0f);
+    setWindowAspectRatio(windowAspectRatio);
     recalculateFrontVector();
 }
 
@@ -19,26 +19,6 @@ void Camera::recalculateFrontVector()
     cameraDir.y = sin(glm::radians(m_pitchDeg));
     cameraDir.z = sin(glm::radians(m_yawDeg)) * cos(glm::radians(m_pitchDeg));
     m_frontVector = glm::normalize(cameraDir);
-}
-
-void Camera::moveForward(float amount)
-{
-    m_position += m_frontVector * amount;
-}
-
-void Camera::moveBackwards(float amount)
-{
-    m_position -= m_frontVector * amount;
-}
-
-void Camera::moveLeft(float amount)
-{
-    m_position -= glm::normalize(glm::cross(m_frontVector, m_upVector)) * amount;
-}
-
-void Camera::moveRight(float amount)
-{
-    m_position += glm::normalize(glm::cross(m_frontVector, m_upVector)) * amount;
 }
 
 void Camera::updateShaderUniforms(uint shaderId)
