@@ -23,7 +23,7 @@ public:
 private:
     State m_state{State::Uninitialized};
     size_t m_numOfVertices{};
-    std::vector<float> m_vboData;
+    float* m_vboData{};
     uint m_vaoIndex{};
     uint m_vboIndex{};
 

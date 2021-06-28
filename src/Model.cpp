@@ -243,7 +243,9 @@ bool Model::_parseObjFile(const std::string& filePath)
     Logger::verb << Logger::End;
 #endif
 
-    for (size_t i{}; i < vertices.size()/3; ++i)
+    m_numOfVertices = vertices.size()/3;
+    m_vboData = new float[m_numOfVertices*8];
+    for (size_t i{}; i < vertices.size(); i += 3)
     {
         /*
          * Vertex data layout:
@@ -252,16 +254,16 @@ bool Model::_parseObjFile(const std::string& filePath)
          *  * normals (3 values)
          */
 
-        m_vboData.push_back(vertices[i/3+0]);
-        m_vboData.push_back(vertices[i/3+1]);
-        m_vboData.push_back(vertices[i/3+2]);
-        m_vboData.push_back(uvCoords[i/2+0]);
-        m_vboData.push_back(uvCoords[i/2+1]);
-        m_vboData.push_back(normals[i/3+0]);
-        m_vboData.push_back(normals[i/3+1]);
-        m_vboData.push_back(normals[i/3+2]);
+        const size_t arrayI = i/3*8;
+        m_vboData[arrayI+0] = vertices[i+0];
+        m_vboData[arrayI+1] = vertices[i+1];
+        m_vboData[arrayI+2] = vertices[i+2];
+        m_vboData[arrayI+3] = uvCoords[i+0];
+        m_vboData[arrayI+4] = uvCoords[i+1];
+        m_vboData[arrayI+5] = normals[i+0];
+        m_vboData[arrayI+6] = normals[i+1];
+        m_vboData[arrayI+7] = normals[i+2];
     }
-    m_numOfVertices = vertices.size()/3;
 
     m_state = State::Ok;
     return 0;
@@ -274,14 +276,14 @@ bool Model::open(const std::string& filePath)
         return 1;
     }
 
-    Logger::verb << "Copying and configuring vertex data (" << m_vboData.size() << " values)" << Logger::End;
+    Logger::verb << "Copying and configuring vertex data" << Logger::End;
 
     glGenVertexArrays(1, &m_vaoIndex);
     glBindVertexArray(m_vaoIndex);
 
     glGenBuffers(1, &m_vboIndex);
     glBindBuffer(GL_ARRAY_BUFFER, m_vboIndex);
-    glBufferData(GL_ARRAY_BUFFER, m_vboData.size()*sizeof(float), m_vboData.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_numOfVertices*sizeof(float)*8, m_vboData, GL_STATIC_DRAW);
 
     // Vertex coordinate attribute
     glVertexAttribPointer(VERTEX_ATTR_I_VERTEX, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
@@ -310,6 +312,7 @@ Model::~Model()
 {
     glDeleteVertexArrays(1, &m_vaoIndex);
     glDeleteBuffers(1, &m_vboIndex);
-    Logger::verb << "Freed a model with " << m_numOfVertices << " vertices" << Logger::End;
+    delete[] m_vboData;
+    Logger::verb << "Freed a model" << Logger::End;
 }
 
