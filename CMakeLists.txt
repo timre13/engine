@@ -20,5 +20,6 @@ ADD_EXECUTABLE(engine
     src/GameObject.cpp
     src/Model.cpp
     src/Camera.cpp
+    src/Texture.cpp
 )
 

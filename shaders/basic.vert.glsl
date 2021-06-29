@@ -8,7 +8,10 @@ uniform mat4 modelMat;
 uniform mat4 viewMat;
 uniform mat4 projMat;
 
+out vec2 texCoord;
+
 void main()
 {
     gl_Position = projMat * viewMat * modelMat * vec4(inPos, 1.0f);
+    texCoord = inUv;
 }
