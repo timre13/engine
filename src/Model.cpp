@@ -150,12 +150,12 @@ bool Model::_parseObjFile(const std::string& filePath)
                 size_t vertexI, uvCoordI, normalI;
                 size_t numOfProcessed;
 
-                vertexI = std::stof(token.c_str(), &numOfProcessed);
+                vertexI = std::stoul(token.c_str(), &numOfProcessed);
 
                 try
                 {
                     token = token.substr(numOfProcessed+1);
-                    uvCoordI = std::stof(token.c_str(), &numOfProcessed);
+                    uvCoordI = std::stoul(token.c_str(), &numOfProcessed);
                 }
                 catch (...)
                 {
@@ -167,7 +167,7 @@ bool Model::_parseObjFile(const std::string& filePath)
                 try
                 {
                     token = token.substr(numOfProcessed+1);
-                    normalI = std::stof(token.c_str(), &numOfProcessed);
+                    normalI = std::stoul(token.c_str(), &numOfProcessed);
                 }
                 catch (...)
                 {
@@ -183,7 +183,8 @@ bool Model::_parseObjFile(const std::string& filePath)
                     Logger::err << "Invalid face vertex: " << originalToken
                         << ": FaceVertex(" << vertexI << ", " << uvCoordI << ", " << normalI << ")"  << Logger::End;
                     Logger::log << verticesTmp.size() << ", " << uvCoordsTmp.size() << ", " << normalsTmp.size() << Logger::End;
-                    continue;
+                    m_state = State::ParseFailed;
+                    return 1;
                 }
 
 #if MODEL_FILE_PARSER_VERBOSE
@@ -245,7 +246,7 @@ bool Model::_parseObjFile(const std::string& filePath)
 
     m_numOfVertices = vertices.size()/3;
     m_vboData = new float[m_numOfVertices*8];
-    for (size_t i{}; i < vertices.size(); i += 3)
+    for (size_t i{}; i < vertices.size()/3; ++i)
     {
         /*
          * Vertex data layout:
@@ -254,12 +255,12 @@ bool Model::_parseObjFile(const std::string& filePath)
          *  * normals (3 values)
          */
 
-        const size_t arrayI = i/3*8;
-        m_vboData[arrayI+0] = vertices[i+0];
-        m_vboData[arrayI+1] = vertices[i+1];
-        m_vboData[arrayI+2] = vertices[i+2];
-        m_vboData[arrayI+3] = uvCoords[i+0];
-        m_vboData[arrayI+4] = uvCoords[i+1];
+        const size_t arrayI = i*8;
+        m_vboData[arrayI+0] = vertices[i*3+0];
+        m_vboData[arrayI+1] = vertices[i*3+1];
+        m_vboData[arrayI+2] = vertices[i*3+2];
+        m_vboData[arrayI+3] = uvCoords[i*2+0];
+        m_vboData[arrayI+4] = uvCoords[i*2+1];
         m_vboData[arrayI+5] = normals[i+0];
         m_vboData[arrayI+6] = normals[i+1];
         m_vboData[arrayI+7] = normals[i+2];
@@ -275,6 +276,13 @@ bool Model::open(const std::string& filePath)
     {
         return 1;
     }
+
+#if MODEL_FILE_PARSER_VERBOSE
+    Logger::verb << "VBO data: ";
+    for (size_t i{}; i < m_numOfVertices*8; ++i)
+        Logger::verb << m_vboData[i] << ", ";
+    Logger::verb << Logger::End;
+#endif
 
     Logger::verb << "Copying and configuring vertex data" << Logger::End;
 
