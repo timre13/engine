@@ -124,6 +124,7 @@ int main()
     SDL_ShowCursor(false);
     bool shouldQuit = false;
     bool isInWireframeMode = false;
+    bool isPaused = false;
     while (!shouldQuit)
     {
         uint32_t currentTime = SDL_GetTicks();
@@ -157,6 +158,11 @@ int main()
                     shouldQuit = true;
                     break;
 
+                case SDLK_TAB:
+                    isPaused = !isPaused;
+                    SDL_ShowCursor(isPaused);
+                    break;
+
                 case SDLK_F3:
                     isInWireframeMode = !isInWireframeMode;
                     glPolygonMode(GL_FRONT_AND_BACK, isInWireframeMode ? GL_LINE : GL_FILL);
@@ -174,6 +180,7 @@ int main()
         SDL_GetWindowSize(window, &windowW, &windowH);
 
         // Cursor movement handling
+        if (!isPaused)
         {
             int windowCenterX = windowW / 2;
             int windowCenterY = windowH / 2;
