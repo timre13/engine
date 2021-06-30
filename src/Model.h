@@ -34,9 +34,10 @@ public:
     // Copy ctor, copy assignment op
     Model(const Model&) = delete;
     Model& operator=(const Model&) = delete;
+
     // Move ctor, move assignment op
-    Model(Model&&) = delete;
-    Model& operator=(Model&&) = delete;
+    Model(Model&& another);
+    Model& operator=(Model&& another);
 
     bool open(const std::string& filePath);
     inline State getState() const { return m_state; }

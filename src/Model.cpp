@@ -37,6 +37,45 @@ static bool readFileContents(const std::string& filePath, std::string* output)
     return 0;
 }
 
+Model::Model(Model&& another)
+{
+    m_state = another.m_state;
+
+    m_numOfVertices = another.m_numOfVertices;
+    another.m_numOfVertices = 0;
+
+    m_vboData = another.m_vboData;
+    another.m_vboData = nullptr;
+
+    m_vaoIndex = another.m_vaoIndex;
+    another.m_vaoIndex = 0;
+
+    m_vboIndex = another.m_vboIndex;
+    another.m_vboIndex = 0;
+}
+
+Model& Model::operator=(Model&& another)
+{
+    if (this != &another)
+    {
+        m_state = another.m_state;
+
+        m_numOfVertices = another.m_numOfVertices;
+        another.m_numOfVertices = 0;
+
+        m_vboData = another.m_vboData;
+        another.m_vboData = nullptr;
+
+        m_vaoIndex = another.m_vaoIndex;
+        another.m_vaoIndex = 0;
+
+        m_vboIndex = another.m_vboIndex;
+        another.m_vboIndex = 0;
+    }
+
+    return *this;
+}
+
 bool Model::_parseObjFile(const std::string& filePath)
 {
     std::string fileContents;
@@ -321,6 +360,6 @@ Model::~Model()
     glDeleteVertexArrays(1, &m_vaoIndex);
     glDeleteBuffers(1, &m_vboIndex);
     delete[] m_vboData;
-    Logger::verb << "Freed a model" << Logger::End;
+    Logger::verb << "Deleted a model (" << this << ')' << Logger::End;
 }
 

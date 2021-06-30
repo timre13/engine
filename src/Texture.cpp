@@ -5,6 +5,22 @@
 #include "../submodules/stb/stb_image.h"
 #include "Logger.h"
 
+Texture::Texture(Texture&& another)
+{
+    m_state = another.m_state;
+
+    m_textureIndex = another.m_textureIndex;
+    another.m_textureIndex = 0;
+}
+
+Texture& Texture::operator=(Texture&& another)
+{
+    m_state = another.m_state;
+
+    m_textureIndex = another.m_textureIndex;
+    another.m_textureIndex = 0;
+}
+
 bool Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT*/, int verticalWrapMode/*=GL_REPEAT*/)
 {
     stbi_set_flip_vertically_on_load(1);
@@ -29,7 +45,7 @@ bool Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPE
     
     stbi_image_free(textureData);
 
-    Logger::verb << "Opened image: " << filePath << Logger::End;
+    Logger::verb << "Opened image: " << filePath << " (size: " << width << 'x' << height << ')' << Logger::End;
     m_state = State::Ok;
     return 0;
 }
@@ -37,6 +53,6 @@ bool Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPE
 Texture::~Texture()
 {
     glDeleteTextures(1, &m_textureIndex);
-    Logger::verb << "Deleted a texture" << Logger::End;
+    Logger::verb << "Deleted a texture (" << this << ')' << Logger::End;
 }
 

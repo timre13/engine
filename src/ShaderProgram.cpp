@@ -131,5 +131,6 @@ bool ShaderProgram::open(const std::string& vertexPath, const std::string& fragm
 ShaderProgram::~ShaderProgram()
 {
     glDeleteProgram(m_shaderProgramId);
+    Logger::verb << "Deleted a shader program (" << this << ')' << Logger::End;
 }
 

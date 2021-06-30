@@ -23,10 +23,10 @@ public:
     // Copy ctor, copy assignment op
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
+
     // Move ctor, move assignment op
-    // XXX: Implement them
-    Texture(Texture&&) = delete;
-    Texture& operator=(Texture&&) = delete;
+    Texture(Texture&& another);
+    Texture& operator=(Texture&& another);
 
     bool open(const std::string& filePath, int horizontalWrapMode=GL_REPEAT, int verticalWrapMode=GL_REPEAT);
 
