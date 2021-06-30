@@ -95,6 +95,10 @@ int main()
     }
     Logger::verb << "Initialized GLEW" << Logger::End;
 
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    SDL_GL_SwapWindow(window);
+
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(debugMessageCallback, 0);
 
