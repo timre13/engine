@@ -29,6 +29,9 @@ private:
 
     bool _parseObjFile(const std::string& filename);
 
+    friend class GameObject;
+    void draw();
+
 public:
     Model(){}
     // Copy ctor, copy assignment op
@@ -41,8 +44,6 @@ public:
 
     bool open(const std::string& filePath);
     inline State getState() const { return m_state; }
-
-    void draw();
 
     ~Model();
 };

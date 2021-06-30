@@ -18,6 +18,9 @@ private:
     State m_state{State::Uninitialized};
     unsigned int m_textureIndex{};
 
+    friend class GameObject;
+    inline void bind() { glBindTexture(GL_TEXTURE_2D, m_textureIndex); }
+
 public:
     Texture(){}
     // Copy ctor, copy assignment op
@@ -31,8 +34,6 @@ public:
     bool open(const std::string& filePath, int horizontalWrapMode=GL_REPEAT, int verticalWrapMode=GL_REPEAT);
 
     inline State getState() const { return m_state; }
-
-    inline void bind() { glBindTexture(GL_TEXTURE_2D, m_textureIndex); }
 
     ~Texture();
 };

@@ -15,14 +15,21 @@ Texture::Texture(Texture&& another)
 
 Texture& Texture::operator=(Texture&& another)
 {
+    if (this == &another)
+        return *this;
+
     m_state = another.m_state;
 
     m_textureIndex = another.m_textureIndex;
     another.m_textureIndex = 0;
+
+    return *this;
 }
 
 bool Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT*/, int verticalWrapMode/*=GL_REPEAT*/)
 {
+    Logger::verb << "Reading image: " << filePath << Logger::End;
+
     stbi_set_flip_vertically_on_load(1);
     int width, height, channelCount;
     unsigned char* textureData = stbi_load(filePath.c_str(), &width, &height, &channelCount, 4);
@@ -45,7 +52,7 @@ bool Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPE
     
     stbi_image_free(textureData);
 
-    Logger::verb << "Opened image: " << filePath << " (size: " << width << 'x' << height << ')' << Logger::End;
+    Logger::verb << "Opened image (size: " << width << 'x' << height << ')' << Logger::End;
     m_state = State::Ok;
     return 0;
 }

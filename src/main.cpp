@@ -1,12 +1,15 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_opengl.h>
+#include <vector>
+#include <memory>
 #include "Logger.h"
 #include "ShaderProgram.h"
 #include "Camera.h"
+#include "GameObject.h"
+#include "assets.h"
 #include "Model.h"
+#include "Texture.h"
 
 #define INITIAL_WIN_W 1500
 #define INITIAL_WIN_H 1000
@@ -112,16 +115,34 @@ int main()
 
     int winW, winH;
     SDL_GetWindowSize(window, &winW, &winH);
-    Camera camera{{0.0f, 0.0f, 5.0f}, (float)winW/winH};
+    Camera camera{{0.0f, 0.0f, 0.0f}, (float)winW/winH};
     camera.updateShaderUniforms(shader.getId());
 
-    Model model;
-    if (model.open("../models/monkey.obj"))
-        return 1;
+    std::vector<std::shared_ptr<Model>> models;
+    for (size_t i{}; i < Assets::modelCount; ++i)
+    {
+        models.push_back(std::make_shared<Model>());
+        if (models.back()->open(Assets::models[i]))
+            return 1;
+    }
 
-    auto modelMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::translate(modelMatrix, {0.0f, 0.0f, 0.0f});
-    glUniformMatrix4fv(glGetUniformLocation(shader.getId(), "modelMat"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    std::vector<std::shared_ptr<Texture>> textures;
+    for (size_t i{}; i < Assets::textureCount; ++i)
+    {
+        textures.push_back(std::make_shared<Texture>());
+        if (textures.back()->open(Assets::textures[i]))
+            return 1;
+    }
+
+    std::vector<std::shared_ptr<GameObject>> gameObjects;
+    gameObjects.emplace_back(std::make_shared<GameObject>(models[0], textures[0]));
+    gameObjects.back()->translate({0.0f, 0.0f, -5.0f});
+    gameObjects.emplace_back(std::make_shared<GameObject>(models[1], textures[1]));
+    gameObjects.back()->translate({5.0f, 0.0f, 0.0f});
+    gameObjects.emplace_back(std::make_shared<GameObject>(models[2], textures[2]));
+    gameObjects.back()->translate({3.0f, 0.0f, 5.0f});
+
+    glEnable(GL_DEPTH_TEST);
 
     uint32_t lastTime{};
     uint32_t deltaTime{};
@@ -178,7 +199,11 @@ int main()
         if (shouldQuit)
             break;
 
-        SDL_SetWindowTitle(window, ("OpenGL Engine - frame time = " + std::to_string(deltaTime) + "ms, V-Sync " + (isVSyncActive ? "On" : "Off")).c_str());
+        SDL_SetWindowTitle(window, (
+                    "OpenGL Engine"
+                    " - frame time = " + std::to_string(deltaTime) + "ms"
+                    ", fps = " + std::to_string(int(1/(deltaTime/1000.0)))
+                    + ", V-Sync " + (isVSyncActive ? "On" : "Off")).c_str());
 
         int windowW, windowH;
         SDL_GetWindowSize(window, &windowW, &windowH);
@@ -218,11 +243,12 @@ int main()
         camera.updateShaderUniforms(shader.getId());
 
         glClearColor(0.34f, 0.406f, 0.642f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        shader.use();
 
-        model.draw();
-
+        for (size_t i{}; i < gameObjects.size(); ++i)
+            gameObjects[i]->draw(shader.getId());
 
         SDL_GL_SwapWindow(window);
     }
