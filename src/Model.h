@@ -30,6 +30,7 @@ private:
     bool _parseObjFile(const std::string& filename);
 
     friend class GameObject;
+    friend class TextRenderer;
     void draw();
 
 public:

@@ -10,6 +10,7 @@
 #include "assets.h"
 #include "Model.h"
 #include "Texture.h"
+#include "TextRenderer.h"
 
 #define INITIAL_WIN_W 1500
 #define INITIAL_WIN_H 1000
@@ -117,6 +118,12 @@ int main()
     SDL_GetWindowSize(window, &winW, &winH);
     Camera camera{{0.0f, 0.0f, 0.0f}, (float)winW/winH};
     camera.updateShaderUniforms(shader.getId());
+
+
+    auto textRenderer = std::make_unique<TextRenderer>();
+    if (textRenderer->openFont("../models/font"))
+        return 1;
+
 
     std::vector<std::shared_ptr<Model>> models;
     for (size_t i{}; i < Assets::modelCount; ++i)
@@ -240,15 +247,21 @@ int main()
                 camera.moveRight(cameraSpeed, deltaTime);
         }
 
-        camera.updateShaderUniforms(shader.getId());
-
         glClearColor(0.34f, 0.406f, 0.642f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();
 
+        camera.updateShaderUniforms(shader.getId());
+
         for (size_t i{}; i < gameObjects.size(); ++i)
             gameObjects[i]->draw(shader.getId());
+
+
+        textRenderer->renderText(
+                "FT: " + std::to_string(deltaTime) + "ms\n"
+                + std::to_string(int(1/(deltaTime/1000.0))) + " FPS",
+                0.1f, {1.70f*10, 0.0f});
 
         SDL_GL_SwapWindow(window);
     }

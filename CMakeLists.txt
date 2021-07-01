@@ -21,5 +21,14 @@ ADD_EXECUTABLE(engine
     src/Model.cpp
     src/Camera.cpp
     src/Texture.cpp
+    src/TextRenderer.cpp
 )
+
+# Generate the font models on build
+ADD_CUSTOM_TARGET(
+    font_models
+    COMMAND python3 split_font_model.py
+    WORKING_DIRECTORY ../models
+)
+ADD_DEPENDENCIES(engine font_models)
 
