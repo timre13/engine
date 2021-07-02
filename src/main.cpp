@@ -18,6 +18,8 @@
 #define WINDOW_FULLSCREEN_MODE 0
 #define MOUSE_SENS 0.1f
 #define USE_VSYNC 1
+#define FOV_DEFAULT 45.0f
+#define FOV_ZOOM 10.0f
 
 void GLAPIENTRY debugMessageCallback(
         GLenum, GLenum type, GLuint, GLenum severity,
@@ -116,7 +118,8 @@ int main()
 
     int winW, winH;
     SDL_GetWindowSize(window, &winW, &winH);
-    Camera camera{{0.0f, 0.0f, 0.0f}, (float)winW/winH};
+    Camera camera{{0.0f, 1.0f, 0.0f}, (float)winW/winH};
+    camera.setFovDeg(45.0f);
     camera.updateShaderUniforms(shader.getId());
 
 
@@ -162,6 +165,9 @@ int main()
         uint32_t currentTime = SDL_GetTicks();
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
+
+        int cursorX, cursorY;
+        uint32_t mouseButtonState = SDL_GetMouseState(&cursorX, &cursorY);
 
         SDL_Event event;
         while (SDL_PollEvent(&event) && !shouldQuit)
@@ -221,9 +227,6 @@ int main()
             int windowCenterX = windowW / 2;
             int windowCenterY = windowH / 2;
 
-            int cursorX, cursorY;
-            SDL_GetMouseState(&cursorX, &cursorY);
-
             if (cursorX != windowCenterX || cursorY != windowCenterY)
             {
                 camera.setYawDeg(camera.getYawDeg() + (cursorX - windowCenterX) * MOUSE_SENS);
@@ -245,6 +248,18 @@ int main()
                 camera.moveLeft(cameraSpeed, deltaTime);
             else if (keyboardState[SDL_SCANCODE_D])
                 camera.moveRight(cameraSpeed, deltaTime);
+        }
+
+        // Zoom with the right mouse button
+        if (mouseButtonState & SDL_BUTTON(SDL_BUTTON_RIGHT))
+        {
+            if (camera.getFovDeg() > FOV_ZOOM)
+                camera.setFovDeg(camera.getFovDeg()-5.0f);
+        }
+        else
+        {
+            if (camera.getFovDeg() < FOV_DEFAULT)
+                camera.setFovDeg(camera.getFovDeg()+5.0f);
         }
 
         glClearColor(0.34f, 0.406f, 0.642f, 1.0f);

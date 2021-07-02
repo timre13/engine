@@ -14,9 +14,13 @@ private:
     float m_pitchDeg{};
     glm::vec3 m_frontVector{};
     glm::vec3 m_upVector{0.0f, 1.0f, 0.0f};
+    float m_windowAspectRatio{};
 
 public:
     Camera(const glm::vec3& position, float windowAspectRatio);
+
+    inline void setFovDeg(float valueDeg) { m_fovDeg = valueDeg; setWindowAspectRatio(m_windowAspectRatio); }
+    inline float getFovDeg() const { return m_fovDeg; }
 
     inline void moveForward(float amount, int frameTime) { m_position += m_frontVector * (amount * frameTime); }
     inline void moveBackwards(float amount, int frameTime) { m_position -= m_frontVector * (amount * frameTime); }
@@ -24,7 +28,11 @@ public:
     inline void moveRight(float amount, int frameTime) { m_position += glm::normalize(glm::cross(m_frontVector, m_upVector)) * (amount * frameTime); }
 
     void recalculateFrontVector();
-    inline void setWindowAspectRatio(float rat) { m_projectionMatrix = glm::perspective(glm::radians(m_fovDeg), rat, 0.1f, 100.0f); }
+    inline void setWindowAspectRatio(float rat)
+    {
+        m_windowAspectRatio = rat;
+        m_projectionMatrix = glm::perspective(glm::radians(m_fovDeg), m_windowAspectRatio, 0.1f, 100.0f);
+    }
 
     void updateShaderUniforms(uint shaderId);
 
