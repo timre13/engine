@@ -40,5 +40,7 @@ public:
     inline void scale(const glm::vec3& scale) { m_modelMatrix = glm::scale(m_modelMatrix, scale); }
 
     void draw(unsigned int shaderId);
+
+    inline void setTextureWrapMode(int horizontalWrapMode, int verticalWrapMode) { m_texture->setWrapMode(horizontalWrapMode, verticalWrapMode); }
 };
 

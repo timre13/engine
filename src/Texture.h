@@ -35,6 +35,14 @@ public:
 
     inline State getState() const { return m_state; }
 
+    inline void setWrapMode(int horizontalWrapMode, int verticalWrapMode)
+    {
+        glBindTexture(GL_TEXTURE_2D, m_textureIndex);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, horizontalWrapMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, verticalWrapMode);
+    }
+
     ~Texture();
 };
 
