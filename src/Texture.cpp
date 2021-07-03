@@ -3,6 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_FAILURE_USERMSG // Get better error messages
 #include "../submodules/stb/stb_image.h"
+#include "memory.h"
 #include "Logger.h"
 
 Texture::Texture(Texture&& another)
@@ -28,16 +29,29 @@ Texture& Texture::operator=(Texture&& another)
 
 bool Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT*/, int verticalWrapMode/*=GL_REPEAT*/)
 {
-    Logger::verb << "Reading image: " << filePath << Logger::End;
-
-    stbi_set_flip_vertically_on_load(1);
+    unsigned char* textureData;
     int width, height, channelCount;
-    unsigned char* textureData = stbi_load(filePath.c_str(), &width, &height, &channelCount, 4);
-    if (!textureData)
+    if (filePath.empty())
     {
-        Logger::err << "Failed to open image: " << filePath << ": " << stbi_failure_reason() << Logger::End;
-        m_state = State::OpenFailed;
-        return 1;
+        Logger::verb << "Generating empty image" << Logger::End;
+
+        textureData = (unsigned char*)calloc(4, sizeof(unsigned char));
+        width = 1;
+        height = 1;
+        channelCount = 4;
+    }
+    else
+    {
+        Logger::verb << "Reading image: " << filePath << Logger::End;
+
+        stbi_set_flip_vertically_on_load(1);
+        textureData = stbi_load(filePath.c_str(), &width, &height, &channelCount, 4);
+        if (!textureData)
+        {
+            Logger::err << "Failed to open image: " << filePath << ": " << stbi_failure_reason() << Logger::End;
+            m_state = State::OpenFailed;
+            return 1;
+        }
     }
 
     glGenTextures(1, &m_textureIndex);
@@ -50,7 +64,7 @@ bool Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPE
 
     glGenerateMipmap(GL_TEXTURE_2D);
     
-    stbi_image_free(textureData);
+    free(textureData);
 
     Logger::verb << "Opened image (size: " << width << 'x' << height << ')' << Logger::End;
     m_state = State::Ok;
