@@ -123,8 +123,8 @@ int main()
     camera.updateShaderUniforms(shader.getId());
 
 
-    auto textRenderer = std::make_unique<TextRenderer>();
-    if (textRenderer->openFont("../models/font"))
+    auto textRenderer = std::make_unique<OverlayRenderer>();
+    if (textRenderer->open("../models/font", "../models/crosshair.obj"))
         return 1;
 
 
@@ -272,7 +272,7 @@ int main()
         for (size_t i{}; i < gameObjects.size(); ++i)
             gameObjects[i]->draw(shader.getId());
 
-
+        textRenderer->drawCrosshair((float)windowW/windowH);
         textRenderer->renderText(
                 "FT: " + std::to_string(deltaTime) + "ms\n"
                 + std::to_string(int(1/(deltaTime/1000.0))) + " FPS",

@@ -7,17 +7,19 @@
 #include <memory>
 #include <string>
 
-class TextRenderer final
+class OverlayRenderer final
 {
 private:
     std::unique_ptr<ShaderProgram> m_shader;
     std::array<std::unique_ptr<Model>, 94> m_models;
+    std::unique_ptr<Model> m_crosshairModel;
 
 public:
-    TextRenderer();
+    OverlayRenderer();
 
-    bool openFont(const std::string& directoryPath);
+    bool open(const std::string& fontDirectoryPath, const std::string& crosshairModelPath);
     void renderText(
             const std::string& text, float fontScale=0.1f, const glm::vec2& textPos={0.0f, 0.0f}, const glm::vec3& textColor={1.0f, 1.0f, 1.0f});
+    void drawCrosshair(float windowRatio);
 };
 
