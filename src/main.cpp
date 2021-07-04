@@ -10,7 +10,7 @@
 #include "assets.h"
 #include "Model.h"
 #include "Texture.h"
-#include "TextRenderer.h"
+#include "OverlayRenderer.h"
 
 #define INITIAL_WIN_W 1500
 #define INITIAL_WIN_H 1000

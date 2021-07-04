@@ -21,7 +21,7 @@ ADD_EXECUTABLE(engine
     src/Model.cpp
     src/Camera.cpp
     src/Texture.cpp
-    src/TextRenderer.cpp
+    src/OverlayRenderer.cpp
 )
 
 # Generate the font models on build
