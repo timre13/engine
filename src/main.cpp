@@ -273,6 +273,7 @@ int main()
             gameObjects[i]->draw(shader.getId());
 
         textRenderer->drawCrosshair((float)windowW/windowH);
+
         textRenderer->renderText(
                 "FT: " + std::to_string(deltaTime) + "ms\n"
                 + std::to_string(int(1/(deltaTime/1000.0))) + " FPS",
