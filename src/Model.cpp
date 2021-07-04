@@ -304,33 +304,26 @@ bool Model::_parseObjFile(const std::string& filePath)
         m_vboData[arrayI+6] = normals[i+1];
         m_vboData[arrayI+7] = normals[i+2];
     }
-
-    m_state = State::Ok;
     return 0;
 }
 
-bool Model::open(const std::string& filePath)
+static void configureVertexData(uint* vaoIndexPtr, uint* vboIndexPtr, size_t numOfVertices, float* vboData)
 {
-    if (_parseObjFile(filePath))
-    {
-        return 1;
-    }
-
 #if MODEL_FILE_PARSER_VERBOSE
     Logger::verb << "VBO data: ";
-    for (size_t i{}; i < m_numOfVertices*8; ++i)
-        Logger::verb << m_vboData[i] << ", ";
+    for (size_t i{}; i < numOfVertices*8; ++i)
+        Logger::verb << vboData[i] << ", ";
     Logger::verb << Logger::End;
 #endif
 
     Logger::verb << "Copying and configuring vertex data" << Logger::End;
 
-    glGenVertexArrays(1, &m_vaoIndex);
-    glBindVertexArray(m_vaoIndex);
+    glGenVertexArrays(1, vaoIndexPtr);
+    glBindVertexArray(*vaoIndexPtr);
 
-    glGenBuffers(1, &m_vboIndex);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vboIndex);
-    glBufferData(GL_ARRAY_BUFFER, m_numOfVertices*sizeof(float)*8, m_vboData, GL_STATIC_DRAW);
+    glGenBuffers(1, vboIndexPtr);
+    glBindBuffer(GL_ARRAY_BUFFER, *vboIndexPtr);
+    glBufferData(GL_ARRAY_BUFFER, numOfVertices*sizeof(float)*8, vboData, GL_STATIC_DRAW);
 
     // Vertex coordinate attribute
     glVertexAttribPointer(VERTEX_ATTR_I_VERTEX, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
@@ -345,6 +338,29 @@ bool Model::open(const std::string& filePath)
     glEnableVertexAttribArray(VERTEX_ATTR_I_NORMAL);
 
     glBindVertexArray(0);
+}
+
+bool Model::open(const std::string& filePath)
+{
+    if (_parseObjFile(filePath))
+        return 1;
+
+    configureVertexData(&m_vaoIndex, &m_vboIndex, m_numOfVertices, m_vboData);
+
+    m_state = State::Ok;
+    Logger::verb << "Model loaded successfully" << Logger::End;
+    return 0;
+}
+
+bool Model::fromData(float* values, size_t numOfVertices)
+{
+    m_vboData = new float[numOfVertices*8];
+    memcpy(m_vboData, values, numOfVertices*8);
+    m_numOfVertices = numOfVertices;
+
+    configureVertexData(&m_vaoIndex, &m_vboIndex, m_numOfVertices, m_vboData);
+
+    m_state = State::Ok;
     Logger::verb << "Model loaded successfully" << Logger::End;
     return 0;
 }

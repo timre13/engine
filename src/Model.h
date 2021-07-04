@@ -44,6 +44,8 @@ public:
     Model& operator=(Model&& another);
 
     bool open(const std::string& filePath);
+    bool fromData(float* values, size_t numOfVertices);
+
     inline State getState() const { return m_state; }
 
     ~Model();
