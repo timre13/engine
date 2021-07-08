@@ -22,6 +22,8 @@ ADD_EXECUTABLE(engine
     src/Camera.cpp
     src/Texture.cpp
     src/ui/OverlayRenderer.cpp
+    src/ui/Widget.cpp
+    src/ui/Container.cpp
     src/ui/Window.cpp
     src/ui/Button.cpp
 )

@@ -173,6 +173,8 @@ int main()
                     buildMenuYPos+menuBorder+i/numOfCols*(thingRectSize+thingRectSpacing)
             });
             button->setBgColor(UI_COLOR_FG);
+            button->setHoveredBgColor(UI_COLOR_FG_HOVERED);
+            button->setMouseClickCallback([](UI::Widget*, float, float){Logger::log << "Clicked" << Logger::End;});
             buildMenuWindow->addChild(button);
         }
     }
@@ -197,14 +199,19 @@ int main()
     bool isInWireframeMode = false;
     bool isPaused = false;
     bool isBuildMenuShown = false;
+    glm::vec<2, int> currCursorPos{};
+    glm::vec<2, int> prevCursorPos{};
     while (!shouldQuit)
     {
         uint32_t currentTime = SDL_GetTicks();
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        int cursorX, cursorY;
-        uint32_t mouseButtonState = SDL_GetMouseState(&cursorX, &cursorY);
+        prevCursorPos.x = currCursorPos.x;
+        prevCursorPos.y = currCursorPos.y;
+
+        uint32_t mouseButtonState = SDL_GetMouseState(&currCursorPos.x, &currCursorPos.y);
+        bool isLeftMouseButtonBeingReleased{};
 
         SDL_Event event;
         while (SDL_PollEvent(&event) && !shouldQuit)
@@ -250,6 +257,15 @@ int main()
                     break;
                 }
                 break;
+
+            case SDL_MOUSEBUTTONUP:
+                switch (event.button.button)
+                {
+                case SDL_BUTTON_LEFT:
+                    isLeftMouseButtonBeingReleased = true;
+                    break;
+                }
+                break;
             }
         }
         if (shouldQuit)
@@ -267,13 +283,13 @@ int main()
         // Cursor movement handling
         if (!isPaused && !isBuildMenuShown)
         {
-            int windowCenterX = windowW / 2;
-            int windowCenterY = windowH / 2;
+            const int windowCenterX = windowW / 2;
+            const int windowCenterY = windowH / 2;
 
-            if (cursorX != windowCenterX || cursorY != windowCenterY)
+            if (currCursorPos.x != windowCenterX || currCursorPos.x != windowCenterY)
             {
-                camera.setYawDeg(camera.getYawDeg() + (cursorX - windowCenterX) * MOUSE_SENS);
-                camera.setPitchDeg(camera.getPitchDeg() + (windowCenterY - cursorY) * MOUSE_SENS);
+                camera.setYawDeg(camera.getYawDeg() + (currCursorPos.x - windowCenterX) * MOUSE_SENS);
+                camera.setPitchDeg(camera.getPitchDeg() + (windowCenterY - currCursorPos.y) * MOUSE_SENS);
                 SDL_WarpMouseInWindow(window, windowCenterX, windowCenterY);
                 camera.recalculateFrontVector();
             }
@@ -317,6 +333,15 @@ int main()
 
         if (isBuildMenuShown)
         {
+            float normCursorX = (float)currCursorPos.x/windowW;
+            float normCursorY = (float)currCursorPos.y/windowH/((float)windowW/windowH);
+
+            if (prevCursorPos.x != currCursorPos.x || prevCursorPos.y != currCursorPos.y)
+                buildMenuWindow->onCursorMove(normCursorX, normCursorY);
+
+            if (isLeftMouseButtonBeingReleased)
+                buildMenuWindow->onMouseClick(normCursorX, normCursorY);
+
             buildMenuWindow->draw();
         }
         else

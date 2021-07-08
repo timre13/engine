@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
+#include <functional>
 
 namespace UI
 {
@@ -13,8 +14,10 @@ protected:
     glm::vec2 m_position{};
     glm::vec2 m_size{};
     glm::vec3 m_bgColor{};
-    glm::vec3 m_borderColor{};
     Widget* m_parent{};
+
+    std::function<void(Widget*, float, float)> m_mouseMoveCb{};
+    std::function<void(Widget*, float, float)> m_mouseClickCb{};
 
     friend class Container;
     inline void setParent(Widget* parent) { m_parent = parent; }
@@ -58,10 +61,17 @@ public:
     virtual inline void setBgColor(const glm::vec3& value) { m_bgColor = value; }
     virtual inline const glm::vec3& getBgColor() { return m_bgColor; }
 
-    virtual inline void setBorderColor(const glm::vec3& value) { m_borderColor = value; }
-    virtual inline const glm::vec3& getBorderColor() { return m_borderColor; }
-
     virtual void draw() = 0;
+
+    virtual bool isInside(const glm::vec2& position) const;
+
+    //---------------------------- Event callbacks ----------------------------
+
+    virtual void onCursorMove(float mouseX, float mouseY);
+    virtual void setCursorMoveCallback(void (*callback)(Widget*, float, float)) { m_mouseMoveCb = callback; }
+
+    virtual void onMouseClick(float clickX, float clickY);
+    virtual void setMouseClickCallback(void (*callback)(Widget*, float, float)) { m_mouseClickCb = callback; }
 
     virtual inline ~Widget() {}
 };
