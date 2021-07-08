@@ -18,8 +18,8 @@ private:
     State m_state{State::Uninitialized};
     unsigned int m_textureIndex{};
 
-    friend class GameObject;
-    inline void bind() { glBindTexture(GL_TEXTURE_2D, m_textureIndex); }
+    //friend class GameObject;
+    //friend class OverlayRenderer;
 
 public:
     Texture(){}
@@ -42,6 +42,8 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, horizontalWrapMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, verticalWrapMode);
     }
+
+    inline void bind() { glBindTexture(GL_TEXTURE_2D, m_textureIndex); }
 
     ~Texture();
 };

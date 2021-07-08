@@ -10,7 +10,9 @@
 #include "assets.h"
 #include "Model.h"
 #include "Texture.h"
-#include "OverlayRenderer.h"
+#include "ui/Window.h"
+#include "ui/Button.h"
+#include "ui/colors.h"
 
 #define INITIAL_WIN_W 1500
 #define INITIAL_WIN_H 1000
@@ -123,11 +125,6 @@ int main()
     camera.updateShaderUniforms(shader.getId());
 
 
-    auto textRenderer = std::make_unique<OverlayRenderer>();
-    if (textRenderer->open("../models/font", "../models/crosshair.obj"))
-        return 1;
-
-
     std::vector<std::shared_ptr<Model>> models;
     for (size_t i{}; i < Assets::modelCount; ++i)
     {
@@ -144,6 +141,45 @@ int main()
             return 1;
     }
 
+
+    auto overlayRenderer = std::make_shared<OverlayRenderer>();
+    if (overlayRenderer->open("../models/font", "../models/crosshair.obj"))
+        return 1;
+    auto buildMenuWindow = std::make_unique<UI::Window>(overlayRenderer);
+    static constexpr float buildMenuWidth = 0.8f;
+    static constexpr float buildMenuHeight = 0.5f;
+    static constexpr float buildMenuXPos = 0.1f;
+    static constexpr float buildMenuYPos = 0.05f;
+    buildMenuWindow->setSize({buildMenuWidth, buildMenuHeight});
+    buildMenuWindow->setPos({buildMenuXPos, buildMenuYPos});
+    buildMenuWindow->setBgColor(UI_COLOR_BG);
+    //--------------------------
+    {
+        static constexpr int numOfCols = 8;
+        static constexpr float thingRectSpacing = 0.017f;
+        static constexpr float menuBorder = 0.02f;
+        static constexpr float thingRectSize = 0.08f;
+
+        textures[0]->bind();
+
+        // XXX: Use orthographic projection to draw the things on the UI
+
+        for (size_t i{}; i < models.size(); ++i)
+        {
+            auto button = std::make_shared<UI::Button>();
+            button->setSize({thingRectSize, thingRectSize});
+            button->setPos({
+                    buildMenuXPos+menuBorder+i%numOfCols*(thingRectSize+thingRectSpacing),
+                    buildMenuYPos+menuBorder+i/numOfCols*(thingRectSize+thingRectSpacing)
+            });
+            button->setBgColor(UI_COLOR_FG);
+            buildMenuWindow->addChild(button);
+        }
+    }
+
+
+
+    //---------------------------- testing ----------------------------
     std::vector<std::shared_ptr<GameObject>> gameObjects;
     gameObjects.emplace_back(std::make_shared<GameObject>(models[0], textures[0]));
     gameObjects.back()->translate({0.0f, 0.0f, -5.0f});
@@ -160,6 +196,7 @@ int main()
     bool shouldQuit = false;
     bool isInWireframeMode = false;
     bool isPaused = false;
+    bool isBuildMenuShown = false;
     while (!shouldQuit)
     {
         uint32_t currentTime = SDL_GetTicks();
@@ -185,6 +222,7 @@ int main()
                 case SDL_WINDOWEVENT_SIZE_CHANGED:
                     glViewport(0, 0, event.window.data1, event.window.data2);
                     camera.setWindowAspectRatio((float)event.window.data1/event.window.data2);
+                    overlayRenderer->setWindowRatio((float)event.window.data1/event.window.data2);
                     break;
                 }
                 break;
@@ -198,12 +236,17 @@ int main()
 
                 case SDLK_TAB:
                     isPaused = !isPaused;
-                    SDL_ShowCursor(isPaused);
+                    SDL_ShowCursor(isBuildMenuShown || isPaused);
                     break;
 
                 case SDLK_F3:
                     isInWireframeMode = !isInWireframeMode;
                     glPolygonMode(GL_FRONT_AND_BACK, isInWireframeMode ? GL_LINE : GL_FILL);
+                    break;
+
+                case SDLK_e:
+                    isBuildMenuShown = !isBuildMenuShown;
+                    SDL_ShowCursor(isBuildMenuShown || isPaused);
                     break;
                 }
                 break;
@@ -222,7 +265,7 @@ int main()
         SDL_GetWindowSize(window, &windowW, &windowH);
 
         // Cursor movement handling
-        if (!isPaused)
+        if (!isPaused && !isBuildMenuShown)
         {
             int windowCenterX = windowW / 2;
             int windowCenterY = windowH / 2;
@@ -272,12 +315,21 @@ int main()
         for (size_t i{}; i < gameObjects.size(); ++i)
             gameObjects[i]->draw(shader.getId());
 
-        textRenderer->drawCrosshair((float)windowW/windowH);
+        if (isBuildMenuShown)
+        {
+            buildMenuWindow->draw();
+        }
+        else
+        {
+            overlayRenderer->drawCrosshair();
+        }
 
-        textRenderer->renderText(
+        overlayRenderer->renderText(
                 "FT: " + std::to_string(deltaTime) + "ms\n"
                 + std::to_string(int(1/(deltaTime/1000.0))) + " FPS",
                 0.1f, {1.70f*10, 0.0f});
+
+        overlayRenderer->commit();
 
         SDL_GL_SwapWindow(window);
     }

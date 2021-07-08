@@ -9,6 +9,7 @@ uniform vec2 size;
 
 void main()
 {
-    gl_Position = vec4(size.x, size.y, 0.0f, 1.0f) * vec4(inPos.x+position.x, inPos.z-position.y, 0.0f, 1.0f);
+    vec2 scaledPos = vec2(size.x, size.y) * vec2(inPos.x, inPos.z);
+    gl_Position = vec4(scaledPos.x+position.x, scaledPos.y-position.y, 0.0f, 1.0f);
 }
 
