@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types.h"
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <string>
@@ -16,10 +17,9 @@ public:
 
 private:
     State m_state{State::Uninitialized};
-    unsigned int m_textureIndex{};
-
-    //friend class GameObject;
-    //friend class OverlayRenderer;
+    uint m_textureIndex{};
+    int m_widthPx{};
+    int m_heightPx{};
 
 public:
     Texture(){}
@@ -34,6 +34,8 @@ public:
     bool open(const std::string& filePath, int horizontalWrapMode=GL_REPEAT, int verticalWrapMode=GL_REPEAT);
 
     inline State getState() const { return m_state; }
+    inline int getWidth() const { return m_widthPx; }
+    inline int getHeight() const { return m_heightPx; }
 
     inline void setWrapMode(int horizontalWrapMode, int verticalWrapMode)
     {
