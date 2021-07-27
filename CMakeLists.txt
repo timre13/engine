@@ -7,10 +7,16 @@ SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -g")
 
 PROJECT(engine VERSION 1.0)
 
+INCLUDE_DIRECTORIES(
+    /usr/include/freetype2
+    /usr/include/libpng16
+)
+
 LINK_LIBRARIES(
     SDL2
     GL
     GLEW
+    freetype
 )
 
 ADD_EXECUTABLE(engine
@@ -26,13 +32,6 @@ ADD_EXECUTABLE(engine
     src/ui/Container.cpp
     src/ui/Window.cpp
     src/ui/Button.cpp
+    src/os.cpp
 )
-
-# Generate the font models on build
-ADD_CUSTOM_TARGET(
-    font_models
-    COMMAND python3 split_font_model.py
-    WORKING_DIRECTORY ../models
-)
-ADD_DEPENDENCIES(engine font_models)
 

@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
+#include <glm/ext/matrix_transform.hpp>
 #include <string>
 #include <memory>
 #include <glm/glm.hpp>

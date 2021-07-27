@@ -110,6 +110,9 @@ int main()
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(debugMessageCallback, 0);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     Logger::log << "Using OpenGL " << glGetString(GL_VERSION) << Logger::End;
 
 
@@ -143,7 +146,7 @@ int main()
 
 
     auto overlayRenderer = std::make_shared<OverlayRenderer>();
-    if (overlayRenderer->open("../models/font", "../models/crosshair.obj"))
+    if (overlayRenderer->construct("../models/crosshair.obj"))
         return 1;
     auto buildMenuWindow = std::make_unique<UI::Window>(overlayRenderer);
     static constexpr float buildMenuWidth = 0.8f;
@@ -229,7 +232,7 @@ int main()
                 case SDL_WINDOWEVENT_SIZE_CHANGED:
                     glViewport(0, 0, event.window.data1, event.window.data2);
                     camera.setWindowAspectRatio((float)event.window.data1/event.window.data2);
-                    overlayRenderer->setWindowRatio((float)event.window.data1/event.window.data2);
+                    overlayRenderer->setWindowSize(event.window.data1, event.window.data2);
                     break;
                 }
                 break;
@@ -349,10 +352,12 @@ int main()
             overlayRenderer->drawCrosshair();
         }
 
+        std::string fpsText = "FT: " + std::to_string(deltaTime) + "ms\n"
+            + std::to_string(int(1/(deltaTime/1000.0))) + " FPS";
         overlayRenderer->renderText(
-                "FT: " + std::to_string(deltaTime) + "ms\n"
-                + std::to_string(int(1/(deltaTime/1000.0))) + " FPS",
-                0.1f, {1.70f*10, 0.0f});
+                fpsText,
+                1.0f,
+                {windowW-DEF_FONT_SIZE*8, windowH-DEF_FONT_SIZE*2});
 
         overlayRenderer->commit();
 
