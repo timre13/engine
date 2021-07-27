@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ui/OverlayRenderer.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -30,7 +31,7 @@ private:
     bool _parseObjFile(const std::string& filename);
 
     friend class GameObject;
-    friend class OverlayRenderer;
+    friend class UI::OverlayRenderer;
     void draw();
 
 public:

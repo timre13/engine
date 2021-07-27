@@ -145,7 +145,7 @@ int main()
     }
 
 
-    auto overlayRenderer = std::make_shared<OverlayRenderer>();
+    auto overlayRenderer = std::make_shared<UI::OverlayRenderer>();
     if (overlayRenderer->construct("../models/crosshair.obj"))
         return 1;
     auto buildMenuWindow = std::make_unique<UI::Window>(overlayRenderer);

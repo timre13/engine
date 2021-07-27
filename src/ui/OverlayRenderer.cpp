@@ -1,4 +1,5 @@
 #include "OverlayRenderer.h"
+#include "../Model.h"
 #include "../Logger.h"
 #include "colors.h"
 #include "../os.h"
@@ -12,6 +13,9 @@
 #include <string>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+namespace UI
+{
 
 OverlayRenderer::OverlayRenderer()
 {
@@ -250,4 +254,6 @@ void OverlayRenderer::commit()
 
     m_drawCommands.clear();
 }
+
+} // namespace UI
 

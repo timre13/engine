@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../Model.h"
 #include "../ShaderProgram.h"
 #include "../Texture.h"
 #include <glm/glm.hpp>
@@ -11,6 +10,11 @@
 #include <vector>
 
 #define DEF_FONT_SIZE 16
+
+class Model;
+
+namespace UI
+{
 
 class OverlayRenderer final
 {
@@ -96,4 +100,6 @@ public:
 
     void commit();
 };
+
+} // namespace UI
 
