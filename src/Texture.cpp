@@ -47,6 +47,7 @@ bool Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPE
         Logger::verb << "Generating empty image" << Logger::End;
 
         textureData = (unsigned char*)calloc(4, sizeof(unsigned char));
+        memset(textureData, 0xff, 4);
         m_widthPx = 1;
         m_heightPx = 1;
         channelCount = 4;
