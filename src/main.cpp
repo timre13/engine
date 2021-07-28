@@ -24,10 +24,10 @@
 #define FOV_ZOOM 10.0f
 
 void GLAPIENTRY debugMessageCallback(
-        GLenum, GLenum type, GLuint, GLenum severity,
+        GLenum source, GLenum type, GLuint, GLenum severity,
         GLsizei, const GLchar* message, const void*)
 {
-    Logger::warn << "Message [";
+    Logger::warn << "Message: type=\"";
     switch (type)
     {
     case GL_DEBUG_TYPE_ERROR: Logger::warn << "other"; break;
@@ -40,8 +40,30 @@ void GLAPIENTRY debugMessageCallback(
     case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: Logger::warn << "deprecated behavior"; break;
     default: Logger::warn << "unknown"; break;
     }
-    Logger::warn << "] severity = 0x" << std::hex << severity <<
-        " :\n\t" << message << std::dec << Logger::End;
+
+    Logger::warn << "\", source=\"";
+    switch (source)
+    {
+    case GL_DEBUG_SOURCE_API: Logger::warn << "API"; break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM: Logger::warn << "window system"; break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER: Logger::warn << "shader compiler"; break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY: Logger::warn << "third party"; break;
+    case GL_DEBUG_SOURCE_APPLICATION: Logger::warn << "API"; break;
+    case GL_DEBUG_SOURCE_OTHER: Logger::warn << "API"; break;
+    default: Logger::warn << "unknown"; break;
+    }
+
+    Logger::warn << "\", severity=\"";
+    switch (severity)
+    {
+    case GL_DEBUG_SEVERITY_HIGH: Logger::warn << "high"; break;
+    case GL_DEBUG_SEVERITY_MEDIUM: Logger::warn << "medium"; break;
+    case GL_DEBUG_SEVERITY_LOW: Logger::warn << "low"; break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION: Logger::warn << "notification"; break;
+    default: Logger::warn << "unknown"; break;
+    }
+
+    Logger::warn << "\" : " << message << Logger::End;
 }
 
 int main()
