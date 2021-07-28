@@ -18,12 +18,7 @@ namespace UI
 
 class OverlayRenderer final
 {
-private:
-    int m_windowWidth{};
-    int m_windowHeight{};
-    float m_windowRatio{1.0f};
-
-    std::unique_ptr<ShaderProgram> m_fontShader;
+public:
     struct Character
     {
         uint textureId;
@@ -31,6 +26,13 @@ private:
         glm::ivec2 bearing;
         uint advance;
     };
+
+private:
+    int m_windowWidth{};
+    int m_windowHeight{};
+    float m_windowRatio{1.0f};
+
+    std::unique_ptr<ShaderProgram> m_fontShader;
     std::map<char, Character> m_characters;
     uint m_fontVBO{};
     uint m_fontVAO{};
@@ -38,7 +40,8 @@ private:
     //std::unique_ptr<Model> m_crosshairModel;
 
     std::unique_ptr<ShaderProgram> m_uiShader;
-    std::unique_ptr<Model> m_rectangleModel;
+    uint m_uiVBO{};
+    uint m_uiVAO{};
 
     std::unique_ptr<ShaderProgram> m_modelPreviewShader;
 
@@ -86,13 +89,19 @@ public:
     bool construct(const std::string& crosshairModelPath);
 
     /*
-     * Position: Offset of the rectangle's top left corner from the screen's top left corner.
-     *           {0.0f, 0.0f} is in the top left corner. {1.0f, 1.0f} is in the bottom right corner.
-     * Size: The size of the rectangle. {1.0f, 1.0f} fills the whole screen.
-     * Color: The color to fill the rectangle with.
+     * position: Offset of the rectangle's bottom left corner from the screen's bottom left corner as percentage.
+     *           {0.0f, 0.0f} is in the bottom left corner. {100.0f, 100.0f} is in the top right corner.
+     * size: The size of the rectangle as percentage. {100.0f, 100.0f} fills the whole screen.
+     * color: The color to fill the rectangle with.
      */
     void drawFilledRectangle(const glm::vec2& position, const glm::vec2& size, const glm::vec3& color);
 
+    /*
+     * text: The text string to render.
+     * scale: Size of the font relative to `DEF_FONT_SIZE`.
+     * textPos: The position of the text on the screen in pixels. Relative to the bottom left corner.
+     * textColor: The color to use to paint the text.
+     */
     void renderText(
             const std::string& text, float scale, const glm::vec2& textPos, const glm::vec3& textColor={1.0f, 1.0f, 1.0f});
 

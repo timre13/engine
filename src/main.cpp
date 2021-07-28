@@ -149,21 +149,20 @@ int main()
     if (overlayRenderer->construct("../models/crosshair.obj"))
         return 1;
     auto buildMenuWindow = std::make_unique<UI::Window>(overlayRenderer);
-    static constexpr float buildMenuWidth = 0.8f;
-    static constexpr float buildMenuHeight = 0.5f;
-    static constexpr float buildMenuXPos = 0.1f;
-    static constexpr float buildMenuYPos = 0.05f;
+    static constexpr float buildMenuWidth = 80;
+    static constexpr float buildMenuHeight = 50;
+    static constexpr float buildMenuXPos = 10;
+    static constexpr float buildMenuYPos = 5;
     buildMenuWindow->setSize({buildMenuWidth, buildMenuHeight});
     buildMenuWindow->setPos({buildMenuXPos, buildMenuYPos});
     buildMenuWindow->setBgColor(UI_COLOR_BG);
-    //--------------------------
     {
         static constexpr int numOfCols = 8;
-        static constexpr float thingRectSpacing = 0.017f;
-        static constexpr float menuBorder = 0.02f;
-        static constexpr float thingRectSize = 0.08f;
+        static constexpr float thingRectSpacing = 1.7f;
+        static constexpr float menuBorder = 2.0f;
+        static constexpr float thingRectSize = 8.0f;
 
-        textures[0]->bind();
+        //textures[0]->bind();
 
         // XXX: Use orthographic projection to draw the things on the UI
 
@@ -173,7 +172,7 @@ int main()
             button->setSize({thingRectSize, thingRectSize});
             button->setPos({
                     buildMenuXPos+menuBorder+i%numOfCols*(thingRectSize+thingRectSpacing),
-                    buildMenuYPos+menuBorder+i/numOfCols*(thingRectSize+thingRectSpacing)
+                    buildMenuYPos+buildMenuHeight-menuBorder-thingRectSize-int(i/numOfCols)*(thingRectSize+thingRectSpacing)
             });
             button->setBgColor(UI_COLOR_FG);
             button->setHoveredBgColor(UI_COLOR_FG_HOVERED);
@@ -336,8 +335,9 @@ int main()
 
         if (isBuildMenuShown)
         {
-            float normCursorX = (float)currCursorPos.x/windowW;
-            float normCursorY = (float)currCursorPos.y/windowH/((float)windowW/windowH);
+            const float windowRatio = (float)windowW/windowH;
+            const float normCursorX = (float)currCursorPos.x/windowW*100;
+            const float normCursorY = (100-(float)currCursorPos.y/windowH*100)/windowRatio;
 
             if (prevCursorPos.x != currCursorPos.x || prevCursorPos.y != currCursorPos.y)
                 buildMenuWindow->onCursorMove(normCursorX, normCursorY);

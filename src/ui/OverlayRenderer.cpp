@@ -24,10 +24,12 @@ OverlayRenderer::OverlayRenderer()
     //m_crosshairModel = std::make_unique<Model>();
 
     m_uiShader = std::make_unique<ShaderProgram>();
-    m_rectangleModel = std::make_unique<Model>();
     
     m_modelPreviewShader = std::make_unique<ShaderProgram>();
+}
 
+static void setUpFont(std::map<char, OverlayRenderer::Character>* characters, uint* fontVAO, uint* fontVBO)
+{
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
     {
@@ -79,7 +81,7 @@ OverlayRenderer::OverlayRenderer()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // Store the character
-        m_characters.insert({(char)c, {
+        characters->insert({(char)c, {
                     textureId, // Texture
                     {face->glyph->bitmap.width, face->glyph->bitmap.rows}, // Size
                     {face->glyph->bitmap_left, face->glyph->bitmap_top}, // Bearing
@@ -89,10 +91,10 @@ OverlayRenderer::OverlayRenderer()
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
-    glGenVertexArrays(1, &m_fontVAO);
-    glBindVertexArray(m_fontVAO);
-    glGenBuffers(1, &m_fontVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_fontVBO);
+    glGenVertexArrays(1, fontVAO);
+    glBindVertexArray(*fontVAO);
+    glGenBuffers(1, fontVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, *fontVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
     glEnableVertexAttribArray(0);
@@ -107,6 +109,8 @@ bool OverlayRenderer::construct(const std::string& crosshairModelPath)
     {
         return 1;
     }
+    setUpFont(&m_characters, &m_fontVAO, &m_fontVBO);
+
 
     //if (m_crosshairModel->open(crosshairModelPath))
     //{
@@ -120,7 +124,20 @@ bool OverlayRenderer::construct(const std::string& crosshairModelPath)
     {
         return 1;
     }
-    m_rectangleModel->open("../models/rectangle.obj");
+    m_uiShader->use();
+    const auto matrix = glm::ortho(0.0f, 100.0f, 0.0f, 100.0f);
+    glUniformMatrix4fv(glGetUniformLocation(m_uiShader->getId(), "projectionMat"), 1, GL_FALSE, glm::value_ptr(matrix));
+
+    // Create VAO and VBO for the UI rectangle
+    glGenVertexArrays(1, &m_uiVAO);
+    glBindVertexArray(m_uiVAO);
+    glGenBuffers(1, &m_uiVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_uiVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 2, nullptr, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
 
     Logger::verb << "Opening model preview shaders" << Logger::End;
@@ -176,13 +193,27 @@ void OverlayRenderer::commit()
         case DrawCommand::Type::Rect:
         {
             const auto cmd = dynamic_cast<RectDrawCommand*>(c.get());
-
             m_uiShader->use();
-            glUniform2f(glGetUniformLocation(m_uiShader->getId(), "position"), cmd->position.x*2-1.0f+cmd->size.x, cmd->position.y*2-1.0f+cmd->size.y);
-            glUniform2f(glGetUniformLocation(m_uiShader->getId(), "size"), cmd->size.x, cmd->size.y);
-            glUniform3f(glGetUniformLocation(m_uiShader->getId(), "uiColor"), cmd->color.r, cmd->color.g, cmd->color.b);
-            m_rectangleModel->draw();
 
+            glUniform3f(glGetUniformLocation(m_uiShader->getId(), "uiColor"), cmd->color.r, cmd->color.g, cmd->color.b);
+
+            const float vertices[6][2] = {
+                {cmd->position.x,               cmd->position.y},
+                {cmd->position.x,               cmd->position.y + cmd->size.y},
+                {cmd->position.x + cmd->size.x, cmd->position.y + cmd->size.y},
+                {cmd->position.x + cmd->size.x, cmd->position.y + cmd->size.y},
+                {cmd->position.x + cmd->size.x, cmd->position.y},
+                {cmd->position.x,               cmd->position.y},
+            };
+
+            glBindVertexArray(m_uiVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, m_uiVBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            glBindVertexArray(0);
             break;
         }
 
