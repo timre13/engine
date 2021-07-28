@@ -1,6 +1,5 @@
 #include "Button.h"
 #include "Window.h"
-#include "colors.h"
 
 namespace UI
 {
@@ -11,7 +10,14 @@ void Button::draw()
     assert(parent);
     auto window = dynamic_cast<Window*>(parent);
     assert(window);
-    window->getRenderer()->drawFilledRectangle(m_position, m_size, m_isHovered ? m_hoveredBgColor : m_bgColor);
+    auto renderer = window->getRenderer();
+    renderer->drawFilledRectangle(m_position, m_size, m_isHovered ? m_hoveredBgColor : m_bgColor);
+    renderer->renderTextAtPerc(
+            m_text,
+            1.0f,
+            {m_position.x+m_size.x/2-(float)DEF_FONT_SIZE/renderer->getWindowWidth()*25*m_text.size(),
+            m_position.y+m_size.y/2-(float)DEF_FONT_SIZE/renderer->getWindowHeight()*25},
+            m_textColor);
 }
 
 void Button::onCursorMove(float mouseX, float mouseY)

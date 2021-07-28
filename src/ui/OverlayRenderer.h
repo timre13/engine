@@ -73,7 +73,7 @@ private:
     public:
         std::string text;
         float scale;
-        glm::vec2 textPos;
+        glm::ivec2 textPos;
         glm::vec3 textColor;
         
         TextDrawCommand() { type = Type::Text; }
@@ -85,6 +85,10 @@ public:
     OverlayRenderer();
 
     void setWindowSize(int width, int height) { m_windowRatio = (float)width/height; m_windowWidth = width; m_windowHeight = height; }
+
+    inline int getWindowWidth() const { return m_windowWidth; }
+    inline int getWindowHeight() const { return m_windowHeight; }
+    inline float getWindowRatio() const { return m_windowRatio; }
 
     bool construct(const std::string& crosshairModelPath);
 
@@ -99,10 +103,19 @@ public:
     /*
      * text: The text string to render.
      * scale: Size of the font relative to `DEF_FONT_SIZE`.
-     * textPos: The position of the text on the screen in pixels. Relative to the bottom left corner.
+     * textPos: The position of the text on the screen in _PIXELS_. Relative to the bottom left corner.
      * textColor: The color to use to paint the text.
      */
-    void renderText(
+    void renderTextAtPx(
+            const std::string& text, float scale, const glm::ivec2& textPos, const glm::vec3& textColor={1.0f, 1.0f, 1.0f});
+
+    /*
+     * text: The text string to render.
+     * scale: Size of the font relative to `DEF_FONT_SIZE`.
+     * textPos: The position of the text on the screen in _PERCENTAGE_. Relative to the bottom left corner.
+     * textColor: The color to use to paint the text.
+     */
+    void renderTextAtPerc(
             const std::string& text, float scale, const glm::vec2& textPos, const glm::vec3& textColor={1.0f, 1.0f, 1.0f});
 
     void drawCrosshair();

@@ -195,7 +195,7 @@ int main()
                     buildMenuXPos+menuBorder+i%numOfCols*(thingRectSize+thingRectSpacing),
                     buildMenuYPos+buildMenuHeight-menuBorder-thingRectSize-int(i/numOfCols)*(thingRectSize+thingRectSpacing)
             });
-            //button->setText("Hello");
+            button->setText(std::to_string(i));
             button->setMouseClickCallback([](UI::Widget*, float, float){Logger::log << "Clicked" << Logger::End;});
             buildMenuWindow->addChild(button);
         }
@@ -374,7 +374,7 @@ int main()
 
         std::string fpsText = "FT: " + std::to_string(deltaTime) + "ms\n"
             + std::to_string(int(1/(deltaTime/1000.0))) + " FPS";
-        overlayRenderer->renderText(
+        overlayRenderer->renderTextAtPx(
                 fpsText,
                 1.0f,
                 {windowW-DEF_FONT_SIZE*8, windowH-DEF_FONT_SIZE*2});

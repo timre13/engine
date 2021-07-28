@@ -162,13 +162,24 @@ void OverlayRenderer::drawCrosshair()
     //m_crosshairModel->draw();
 }
 
-void OverlayRenderer::renderText(
-        const std::string& text, float scale, const glm::vec2& textPos, const glm::vec3& textColor/*={1.0f, 1.0f, 1.0f}*/)
+void OverlayRenderer::renderTextAtPx(
+        const std::string& text, float scale, const glm::ivec2& textPos, const glm::vec3& textColor/*={1.0f, 1.0f, 1.0f}*/)
 {
     auto command = std::make_unique<TextDrawCommand>();
     command->text = text;
     command->scale = scale;
     command->textPos = textPos;
+    command->textColor = textColor;
+    m_drawCommands.push_back(std::move(command));
+}
+
+void OverlayRenderer::renderTextAtPerc(
+        const std::string& text, float scale, const glm::vec2& textPos, const glm::vec3& textColor/*={1.0f, 1.0f, 1.0f}*/)
+{
+    auto command = std::make_unique<TextDrawCommand>();
+    command->text = text;
+    command->scale = scale;
+    command->textPos = {m_windowWidth*textPos.x/100, m_windowHeight*textPos.y/100*m_windowRatio};
     command->textColor = textColor;
     m_drawCommands.push_back(std::move(command));
 }
