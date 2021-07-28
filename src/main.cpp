@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <vector>
 #include <memory>
+#include <filesystem>
 #include "Logger.h"
 #include "ShaderProgram.h"
 #include "Camera.h"
@@ -125,6 +126,8 @@ int main()
     }
     Logger::verb << "Initialized GLEW" << Logger::End;
 
+
+
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     SDL_GL_SwapWindow(window);
@@ -150,20 +153,27 @@ int main()
     camera.updateShaderUniforms(shader.getId());
 
 
-    std::vector<std::shared_ptr<Model>> models;
-    for (size_t i{}; i < Assets::modelCount; ++i)
-    {
-        models.push_back(std::make_shared<Model>());
-        if (models.back()->open(Assets::models[i]))
-            return 1;
-    }
+    namespace std_fs = std::filesystem;
 
-    std::vector<std::shared_ptr<Texture>> textures;
-    for (size_t i{}; i < Assets::textureCount; ++i)
+    std::vector<std::shared_ptr<Model>> models;
+    for (auto& file : std_fs::recursive_directory_iterator{ASSET_DIR_MODELS, std_fs::directory_options::skip_permission_denied})
     {
-        textures.push_back(std::make_shared<Texture>());
-        if (textures.back()->open(Assets::textures[i]))
-            return 1;
+        if (file.path().extension().compare(".obj") == 0)
+        {
+            models.push_back(std::make_shared<Model>());
+            if (models.back()->open(file.path().string()))
+            {
+                return 1;
+            }
+        }
+    }
+    Logger::verb << "Loaded " << models.size() << " models" << Logger::End;
+
+    std::map<std::string, std::shared_ptr<Texture>> textures;
+    textures.insert({"", std::make_shared<Texture>()});
+    if (textures.find("")->second->open(ASSET_DIR_TEXTURES "/" TEXTURE_FILENAME_PLACEHOLDER))
+    {
+        return 1;
     }
 
 
@@ -201,16 +211,23 @@ int main()
         }
     }
 
-
-
     //---------------------------- testing ----------------------------
     std::vector<std::shared_ptr<GameObject>> gameObjects;
-    gameObjects.emplace_back(std::make_shared<GameObject>(models[0], textures[0]));
-    gameObjects.back()->translate({0.0f, 0.0f, -5.0f});
-    gameObjects.emplace_back(std::make_shared<GameObject>(models[1], textures[1]));
-    gameObjects.back()->translate({5.0f, 0.0f, 0.0f});
-    gameObjects.emplace_back(std::make_shared<GameObject>(models[2], textures[2]));
+    gameObjects.emplace_back(std::make_shared<GameObject>(models[1], textures.find("")->second));
+    gameObjects.back()->translate({0.0f, 0.0f, 0.0f});
+
+    gameObjects.emplace_back(std::make_shared<GameObject>(models[2], textures.find("")->second));
+    gameObjects.back()->translate({0.0f, 1.0f, -5.0f});
+    gameObjects.emplace_back(std::make_shared<GameObject>(models[3], textures.find("")->second));
+    gameObjects.back()->translate({5.0f, 1.0f, 0.0f});
+    gameObjects.emplace_back(std::make_shared<GameObject>(models[4], textures.find("")->second));
     gameObjects.back()->translate({3.0f, 0.0f, 5.0f});
+    gameObjects.back()->scale({100.0f, 100.0f, 100.0f});
+
+    // Item holder
+    gameObjects.emplace_back(std::make_shared<GameObject>(models[5], textures.find("")->second));
+    gameObjects.back()->translate({10.0f, 0.0f, 5.0f});
+    //------------------------------------------------------------------
 
     glEnable(GL_DEPTH_TEST);
 
