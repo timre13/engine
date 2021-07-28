@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include "colors.h"
 
 namespace UI
 {
@@ -13,7 +14,7 @@ class Widget
 protected:
     glm::vec2 m_position{};
     glm::vec2 m_size{};
-    glm::vec3 m_bgColor{};
+    glm::vec3 m_bgColor = UI_COLOR_WIDG_BG;
     Widget* m_parent{};
 
     std::function<void(Widget*, float, float)> m_mouseMoveCb{};

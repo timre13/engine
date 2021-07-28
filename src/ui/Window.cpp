@@ -6,6 +6,7 @@ namespace UI
 Window::Window(std::shared_ptr<OverlayRenderer> renderer)
     : m_renderer{renderer}
 {
+    m_bgColor = UI_COLOR_WIN_BG;
 }
 
 void Window::draw()

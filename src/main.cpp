@@ -177,7 +177,6 @@ int main()
     static constexpr float buildMenuYPos = 5;
     buildMenuWindow->setSize({buildMenuWidth, buildMenuHeight});
     buildMenuWindow->setPos({buildMenuXPos, buildMenuYPos});
-    buildMenuWindow->setBgColor(UI_COLOR_BG);
     {
         static constexpr int numOfCols = 8;
         static constexpr float thingRectSpacing = 1.7f;
@@ -196,8 +195,7 @@ int main()
                     buildMenuXPos+menuBorder+i%numOfCols*(thingRectSize+thingRectSpacing),
                     buildMenuYPos+buildMenuHeight-menuBorder-thingRectSize-int(i/numOfCols)*(thingRectSize+thingRectSpacing)
             });
-            button->setBgColor(UI_COLOR_FG);
-            button->setHoveredBgColor(UI_COLOR_FG_HOVERED);
+            //button->setText("Hello");
             button->setMouseClickCallback([](UI::Widget*, float, float){Logger::log << "Clicked" << Logger::End;});
             buildMenuWindow->addChild(button);
         }

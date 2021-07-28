@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Widget.h"
+#include "colors.h"
 #include <string>
 #include <glm/glm.hpp>
 
@@ -11,7 +12,7 @@ class Button : public Widget
 {
 protected:
     bool m_isHovered{};
-    glm::vec3 m_hoveredBgColor;
+    glm::vec3 m_hoveredBgColor = UI_COLOR_WIDG_BG_HOVERED;
 
 public:
     virtual inline bool isHovered() const { return m_isHovered; }
