@@ -33,13 +33,10 @@ public:
     inline Widget* getTopLevelParent()
     {
         auto parent = m_parent;
-        while (true)
-        {
-            if (!parent)
-                break;
+        if (!parent) return nullptr; // Maybe we don't have a parent :(
 
+        while (parent->getParent())
             parent = parent->getParent();
-        }
 
         return parent;
     }

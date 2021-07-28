@@ -6,7 +6,7 @@ namespace UI
 
 void Button::draw()
 {
-    auto parent = getParent();
+    auto parent = getTopLevelParent();
     assert(parent);
     auto window = dynamic_cast<Window*>(parent);
     assert(window);
