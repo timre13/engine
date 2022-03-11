@@ -22,7 +22,7 @@ private:
     int m_heightPx{};
 
 public:
-    Texture(){}
+    Texture(const std::string& filePath, int horizontalWrapMode=GL_REPEAT, int verticalWrapMode=GL_REPEAT);
     // Copy ctor, copy assignment op
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
@@ -30,8 +30,6 @@ public:
     // Move ctor, move assignment op
     Texture(Texture&& another);
     Texture& operator=(Texture&& another);
-
-    bool open(const std::string& filePath, int horizontalWrapMode=GL_REPEAT, int verticalWrapMode=GL_REPEAT);
 
     inline State getState() const { return m_state; }
     inline int getWidth() const { return m_widthPx; }
