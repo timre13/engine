@@ -31,7 +31,7 @@ public:
     inline void setWindowAspectRatio(float rat)
     {
         m_windowAspectRatio = rat;
-        m_projectionMatrix = glm::perspective(glm::radians(m_fovDeg), m_windowAspectRatio, 0.1f, 100.0f);
+        m_projectionMatrix = glm::perspective(glm::radians(m_fovDeg), m_windowAspectRatio, 0.01f, 1000.0f);
     }
 
     void updateShaderUniforms(uint shaderId);
