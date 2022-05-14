@@ -309,6 +309,10 @@ bool Model::_parseObjFile(const std::string& filePath)
 
 static void configureVertexData(uint* vaoIndexPtr, uint* vboIndexPtr, size_t numOfVertices, float* vboData)
 {
+    assert(vaoIndexPtr);
+    assert(vboIndexPtr);
+    assert(vboData);
+
 #if MODEL_FILE_PARSER_VERBOSE
     Logger::verb << "VBO data: ";
     for (size_t i{}; i < numOfVertices*8; ++i)

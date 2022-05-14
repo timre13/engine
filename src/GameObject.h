@@ -22,10 +22,15 @@ protected:
     std::shared_ptr<Texture> m_texture;
     std::string m_name;
     flag_t m_flags{};
+    glm::vec3 m_pos{};
     glm::mat4 m_modelMatrix;
 
 public:
-    GameObject(std::shared_ptr<Model> model, std::shared_ptr<Texture> texture, const std::string& objectName="<Object>", flag_t flags=defaultFlags);
+    GameObject(
+            std::shared_ptr<Model> model,
+            std::shared_ptr<Texture> texture,
+            const std::string& objectName="<Object>",
+            flag_t flags=defaultFlags);
     // Copy ctor, copy assignment op
     GameObject(const GameObject&) = delete;
     GameObject& operator=(const GameObject&) = delete;
@@ -36,12 +41,12 @@ public:
     inline flag_t getFlags() const { return m_flags; }
     inline flag_t& getFlags() { return m_flags; }
 
-    inline void translate(const glm::vec3 vec) { m_modelMatrix = glm::translate(m_modelMatrix, vec); }
-    inline void rotate(float angleRad, const glm::vec3 axis) { m_modelMatrix = glm::rotate(m_modelMatrix, angleRad, axis); }
-    inline void scale(const glm::vec3& scale) { m_modelMatrix = glm::scale(m_modelMatrix, scale); }
+    void translate(const glm::vec3& vec);
+    void rotate(float angleRad, const glm::vec3& axis);
+    void scale(const glm::vec3& scale);
+    void setPos(const glm::vec3& pos);
+    void setTextureWrapMode(int horizontalWrapMode, int verticalWrapMode);
 
     void draw(unsigned int shaderId);
-
-    inline void setTextureWrapMode(int horizontalWrapMode, int verticalWrapMode) { m_texture->setWrapMode(horizontalWrapMode, verticalWrapMode); }
 };
 

@@ -32,7 +32,6 @@ private:
 
     friend class GameObject;
     friend class UI::OverlayRenderer;
-    void draw();
 
 public:
     Model(){}
@@ -48,6 +47,8 @@ public:
     bool fromData(float* values, size_t numOfVertices);
 
     inline State getState() const { return m_state; }
+
+    void draw();
 
     ~Model();
 };
