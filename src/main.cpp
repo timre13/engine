@@ -338,7 +338,7 @@ int main()
             const int windowCenterX = windowW / 2;
             const int windowCenterY = windowH / 2;
 
-            if (currCursorPos.x != windowCenterX || currCursorPos.x != windowCenterY)
+            if (currCursorPos.x != windowCenterX || currCursorPos.y != windowCenterY)
             {
                 camera.setYawDeg(camera.getYawDeg() + (currCursorPos.x - windowCenterX) * MOUSE_SENS);
                 camera.setPitchDeg(camera.getPitchDeg() + (windowCenterY - currCursorPos.y) * MOUSE_SENS);
