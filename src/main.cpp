@@ -67,6 +67,41 @@ void GLAPIENTRY debugMessageCallback(
     Logger::warn << "\" : " << message << Logger::End;
 }
 
+static UI::Window* createBuildMenuWin(std::shared_ptr<UI::OverlayRenderer> olrend, size_t modelCount)
+{
+    auto win = new UI::Window{olrend};
+    static constexpr float buildMenuWidth = 80;
+    static constexpr float buildMenuHeight = 50;
+    static constexpr float buildMenuXPos = 10;
+    static constexpr float buildMenuYPos = 5;
+    win->setSize({buildMenuWidth, buildMenuHeight});
+    win->setPos({buildMenuXPos, buildMenuYPos});
+    {
+        static constexpr int numOfCols = 8;
+        static constexpr float thingRectSpacing = 1.7f;
+        static constexpr float menuBorder = 2.0f;
+        static constexpr float thingRectSize = 8.0f;
+
+        // XXX: Draw buildable stuff images
+
+        for (size_t i{}; i < modelCount; ++i)
+        {
+            auto button = std::make_shared<UI::Button>();
+            button->setSize({thingRectSize, thingRectSize});
+            button->setPos({
+                    buildMenuXPos+menuBorder+i%numOfCols*(thingRectSize+thingRectSpacing),
+                    buildMenuYPos+buildMenuHeight-menuBorder-thingRectSize-int(i/numOfCols)*(thingRectSize+thingRectSpacing)
+            });
+            button->setText(std::to_string(i));
+            button->setMouseClickCallback([](UI::Widget* w, float, float){
+                    Logger::log << "Clicked button with text \"" << dynamic_cast<UI::Button*>(w)->getText() << "\"" << Logger::End;
+            });
+            win->addChild(button);
+        }
+    }
+    return win;
+}
+
 int main()
 {
     if (SDL_Init(SDL_INIT_VIDEO))
@@ -177,39 +212,8 @@ int main()
     }
 
 
-    auto overlayRenderer = std::make_shared<UI::OverlayRenderer>();
-    if (overlayRenderer->construct("../models/crosshair.obj"))
-        return 1;
-    auto buildMenuWindow = std::make_unique<UI::Window>(overlayRenderer);
-    static constexpr float buildMenuWidth = 80;
-    static constexpr float buildMenuHeight = 50;
-    static constexpr float buildMenuXPos = 10;
-    static constexpr float buildMenuYPos = 5;
-    buildMenuWindow->setSize({buildMenuWidth, buildMenuHeight});
-    buildMenuWindow->setPos({buildMenuXPos, buildMenuYPos});
-    {
-        static constexpr int numOfCols = 8;
-        static constexpr float thingRectSpacing = 1.7f;
-        static constexpr float menuBorder = 2.0f;
-        static constexpr float thingRectSize = 8.0f;
 
-        //textures[0]->bind();
-
-        // XXX: Use orthographic projection to draw the things on the UI
-
-        for (size_t i{}; i < models.size(); ++i)
         {
-            auto button = std::make_shared<UI::Button>();
-            button->setSize({thingRectSize, thingRectSize});
-            button->setPos({
-                    buildMenuXPos+menuBorder+i%numOfCols*(thingRectSize+thingRectSpacing),
-                    buildMenuYPos+buildMenuHeight-menuBorder-thingRectSize-int(i/numOfCols)*(thingRectSize+thingRectSpacing)
-            });
-            button->setText(std::to_string(i));
-            button->setMouseClickCallback([](UI::Widget*, float, float){Logger::log << "Clicked" << Logger::End;});
-            buildMenuWindow->addChild(button);
-        }
-    }
 
     //---------------------------- testing ----------------------------
     std::vector<std::shared_ptr<GameObject>> gameObjects;
