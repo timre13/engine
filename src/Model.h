@@ -35,6 +35,8 @@ private:
 
 public:
     Model(){}
+    Model(const std::string& path);
+
     // Copy ctor, copy assignment op
     Model(const Model&) = delete;
     Model& operator=(const Model&) = delete;

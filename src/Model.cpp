@@ -37,6 +37,12 @@ static bool readFileContents(const std::string& filePath, std::string* output)
     return 0;
 }
 
+
+Model::Model(const std::string& path)
+{
+    open(path);
+}
+
 Model::Model(Model&& another)
 {
     m_state = another.m_state;
@@ -198,6 +204,7 @@ bool Model::_parseObjFile(const std::string& filePath)
                 }
                 catch (...)
                 {
+                    Logger::verb << token << Logger::End;
                     Logger::err << "Invalid face specifier (UV coordinates missing? Make sure to export model with UV coordinates included)" << Logger::End;
                     m_state = State::ParseFailed;
                     return 1;

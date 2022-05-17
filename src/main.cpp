@@ -11,6 +11,7 @@
 #include "assets.h"
 #include "Model.h"
 #include "Texture.h"
+#include "GameMap.h"
 #include "ui/Window.h"
 #include "ui/Button.h"
 #include "ui/colors.h"
@@ -161,7 +162,8 @@ int main()
     }
     Logger::verb << "Initialized GLEW" << Logger::End;
 
-
+    Model model;
+    model.open("../models/ico_sphere.obj");
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -187,51 +189,58 @@ int main()
     camera.setFovDeg(45.0f);
     camera.updateShaderUniforms(shader.getId());
 
+    std::map<std::string, std::shared_ptr<Model>>       modelCache;
+    std::map<std::string, std::shared_ptr<Texture>>     textureCache;
 
-    namespace std_fs = std::filesystem;
+    auto overlayRenderer = std::make_shared<UI::OverlayRenderer>();
+    if (overlayRenderer->construct("../assets/crosshair.obj"))
+        return 1;
+    //auto buildMenuWindow = std::unique_ptr<UI::Window>{createBuildMenuWin(overlayRenderer, models.size())};
 
-    std::vector<std::shared_ptr<Model>> models;
-    for (auto& file : std_fs::recursive_directory_iterator{ASSET_DIR_MODELS, std_fs::directory_options::skip_permission_denied})
+    std::vector<std::unique_ptr<GameObject>> gameObjects;
+    GameMap map;
+    for (const auto& objdescr : map.getObjects())
     {
-        if (file.path().extension().compare(".obj") == 0)
+        std::shared_ptr<Model> model{};
         {
-            models.push_back(std::make_shared<Model>());
-            if (models.back()->open(file.path().string()))
+            const auto& modelName = objdescr->modelName;
+
+            auto modelit = modelCache.find(modelName);
+            if (modelit == modelCache.end())
             {
-                return 1;
+                Logger::verb << "Model \"" << modelName << "\" is NOT in the cache, loading" << Logger::End;
+                // Load the model if not found in the model cache
+                model = modelCache.insert({modelName, std::make_shared<Model>(ASSET_DIR_MODELS"/"+modelName)}).first->second;
+            }
+            else
+            {
+                Logger::verb << "Model \"" << modelName << "\" is in the cache" << Logger::End;
+                model = modelit->second;
             }
         }
-    }
-    Logger::verb << "Loaded " << models.size() << " models" << Logger::End;
 
-    std::map<std::string, std::shared_ptr<Texture>> textures;
-    textures.insert({"", std::make_shared<Texture>()});
-    if (textures.find("")->second->open(ASSET_DIR_TEXTURES "/" TEXTURE_FILENAME_PLACEHOLDER))
-    {
-        return 1;
-    }
-
-
-
+        std::shared_ptr<Texture> texture{};
         {
+            const auto& textureName = objdescr->textureName;
 
-    //---------------------------- testing ----------------------------
-    std::vector<std::shared_ptr<GameObject>> gameObjects;
-    gameObjects.emplace_back(std::make_shared<GameObject>(models[1], textures.find("")->second));
-    gameObjects.back()->translate({0.0f, 0.0f, 0.0f});
+            auto texit = textureCache.find(textureName);
+            if (texit == textureCache.end())
+            {
+                Logger::verb << "Texture \"" << textureName << "\" is NOT in the cache, loading" << Logger::End;
+                // Load the model if not found in the model cache
+                texture = textureCache.insert({textureName, std::make_shared<Texture>(ASSET_DIR_TEXTURES"/"+textureName)}).first->second;
+            }
+            else
+            {
+                Logger::verb << "Texture \"" << textureName << "\" is in the cache" << Logger::End;
+                texture = texit->second;
+            }
+        }
 
-    gameObjects.emplace_back(std::make_shared<GameObject>(models[2], textures.find("")->second));
-    gameObjects.back()->translate({0.0f, 1.0f, -5.0f});
-    gameObjects.emplace_back(std::make_shared<GameObject>(models[3], textures.find("")->second));
-    gameObjects.back()->translate({5.0f, 1.0f, 0.0f});
-    gameObjects.emplace_back(std::make_shared<GameObject>(models[4], textures.find("")->second));
-    gameObjects.back()->translate({3.0f, 0.0f, 5.0f});
-    gameObjects.back()->scale({100.0f, 100.0f, 100.0f});
-
-    // Item holder
-    gameObjects.emplace_back(std::make_shared<GameObject>(models[5], textures.find("")->second));
-    gameObjects.back()->translate({10.0f, 0.0f, 5.0f});
-    //------------------------------------------------------------------
+        gameObjects.push_back(std::unique_ptr<GameObject>{new GameObject{model, texture, objdescr->objName, objdescr->flags}});
+        gameObjects.back()->setPos({objdescr->xPos, objdescr->yPos, objdescr->zPos});
+        gameObjects.back()->scale({objdescr->scaleX, objdescr->scaleY, objdescr->scaleZ});
+    }
 
     glEnable(GL_DEPTH_TEST);
 
@@ -368,9 +377,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();
-
         camera.updateShaderUniforms(shader.getId());
-
         for (size_t i{}; i < gameObjects.size(); ++i)
             gameObjects[i]->draw(shader.getId());
 

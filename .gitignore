@@ -1,5 +1,8 @@
 build/
 models/font/
+**/private/
 .runcfg
 .ccls-cache/
 .cache/
+assets.bak/
+*.vim
