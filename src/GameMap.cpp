@@ -31,7 +31,7 @@ GameMap::GameMap()
     m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
             .objName = "Cube",
             .modelName = "cube.obj",
-            .textureName = "placeholder.png",
+            .textureName = "",
             .xPos = 2.5f,
             .yPos = 4.0f,
             .zPos = 2.3f,

@@ -191,6 +191,15 @@ int main()
 
     std::map<std::string, std::shared_ptr<Model>>       modelCache;
     std::map<std::string, std::shared_ptr<Texture>>     textureCache;
+    {
+        auto placeHolderTex = std::make_shared<Texture>();
+        if (placeHolderTex->open(ASSET_DIR_TEXTURES"/placeholder.png"))
+        {
+            Logger::err << "Failed to load placeholder texture" << Logger::End;
+            return 1;
+        }
+        textureCache.insert({"", std::move(placeHolderTex)});
+    }
 
     auto overlayRenderer = std::make_shared<UI::OverlayRenderer>();
     if (overlayRenderer->construct("../assets/crosshair.obj"))
@@ -227,8 +236,18 @@ int main()
             if (texit == textureCache.end())
             {
                 Logger::verb << "Texture \"" << textureName << "\" is NOT in the cache, loading" << Logger::End;
-                // Load the model if not found in the model cache
-                texture = textureCache.insert({textureName, std::make_shared<Texture>(ASSET_DIR_TEXTURES"/"+textureName)}).first->second;
+                // Load the texture if not found in the texture cache
+                auto tex = std::make_shared<Texture>();
+                if (tex->open(ASSET_DIR_TEXTURES"/"+textureName)) // Try to open texture
+                {
+                    texture = textureCache.find("")->second; // Use placeholder texture if failed
+                    assert(texture);
+                    Logger::warn << "Using placeholder texture for this object" << Logger::End;
+                }
+                else
+                {
+                    texture = textureCache.insert({textureName, tex}).first->second;
+                }
             }
             else
             {

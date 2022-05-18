@@ -6,3 +6,4 @@ models/font/
 .cache/
 assets.bak/
 *.vim
+*.blend1
