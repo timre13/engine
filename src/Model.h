@@ -28,7 +28,7 @@ private:
     uint m_vaoIndex{};
     uint m_vboIndex{};
 
-    bool _parseObjFile(const std::string& filename);
+    int _parseObjFile(const std::string& filename);
 
     friend class GameObject;
     friend class UI::OverlayRenderer;
@@ -40,13 +40,12 @@ public:
     // Copy ctor, copy assignment op
     Model(const Model&) = delete;
     Model& operator=(const Model&) = delete;
-
     // Move ctor, move assignment op
     Model(Model&& another);
     Model& operator=(Model&& another);
 
-    bool open(const std::string& filePath);
-    bool fromData(float* values, size_t numOfVertices);
+    int open(const std::string& filePath);
+    int fromData(float* values, size_t numOfVertices);
 
     inline State getState() const { return m_state; }
 

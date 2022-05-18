@@ -82,7 +82,7 @@ Model& Model::operator=(Model&& another)
     return *this;
 }
 
-bool Model::_parseObjFile(const std::string& filePath)
+int Model::_parseObjFile(const std::string& filePath)
 {
     std::string fileContents;
     if (readFileContents(filePath, &fileContents))
@@ -351,7 +351,7 @@ static void configureVertexData(uint* vaoIndexPtr, uint* vboIndexPtr, size_t num
     glBindVertexArray(0);
 }
 
-bool Model::open(const std::string& filePath)
+int Model::open(const std::string& filePath)
 {
     if (_parseObjFile(filePath))
         return 1;
@@ -363,7 +363,7 @@ bool Model::open(const std::string& filePath)
     return 0;
 }
 
-bool Model::fromData(float* values, size_t numOfVertices)
+int Model::fromData(float* values, size_t numOfVertices)
 {
     m_vboData = new float[numOfVertices*8];
     memcpy(m_vboData, values, numOfVertices*8);
