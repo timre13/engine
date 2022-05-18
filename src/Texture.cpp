@@ -24,6 +24,11 @@ static void genEmptyImg(unsigned char** dataP, int* widthP, int* heightP, int* c
 
 Texture::Texture(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT*/, int verticalWrapMode/*=GL_REPEAT*/)
 {
+    open(filePath, horizontalWrapMode, verticalWrapMode);
+}
+
+int Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT*/, int verticalWrapMode/*=GL_REPEAT*/)
+{
     unsigned char* textureData;
     int channelCount;
     if (filePath.empty())
@@ -48,6 +53,7 @@ Texture::Texture(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT
             Logger::err << "Failed to open image: " << filePath << ": " << stbi_failure_reason() << Logger::End;
             genEmptyImg(&textureData, &m_widthPx, &m_heightPx, &channelCount);
             m_state = State::OpenFailed;
+            return 1;
         }
     }
 
@@ -62,6 +68,7 @@ Texture::Texture(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT
     glGenerateMipmap(GL_TEXTURE_2D);
     
     free(textureData);
+    return 0;
 }
 
 Texture::Texture(Texture&& another)
