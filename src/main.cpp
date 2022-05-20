@@ -257,8 +257,8 @@ int main()
         }
 
         gameObjects.push_back(std::unique_ptr<GameObject>{new GameObject{model, texture, objdescr->objName, objdescr->flags}});
-        gameObjects.back()->setPos({objdescr->xPos, objdescr->yPos, objdescr->zPos});
-        gameObjects.back()->scale({objdescr->scaleX, objdescr->scaleY, objdescr->scaleZ});
+        gameObjects.back()->setPos(objdescr->pos);
+        gameObjects.back()->scale(objdescr->scale);
     }
 
     glEnable(GL_DEPTH_TEST);
