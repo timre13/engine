@@ -4,6 +4,29 @@
 GameMap::GameMap()
 {
 #if 1 // ----- TEST -----
+    static constexpr float floorScale = 4.0f;
+    for (int x{-100}; x <= 100; ++x)
+    {
+        for (int y{-100}; y <= 100; ++y)
+        {
+            m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
+                    .objName = "Plane",
+                    .modelName = "plane.obj",
+                    .textureName = "floor_tiled_stone/square_floor_diff_4k.jpg",
+                    .pos = {
+                        x*floorScale,
+                        0.0f,
+                        y*floorScale,
+                    },
+                    .scale = {
+                        floorScale,
+                        floorScale,
+                        floorScale,
+                    },
+            }});
+        }
+    }
+
     m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
             .objName = "Teapot 1",
             .modelName = "teapot.obj",

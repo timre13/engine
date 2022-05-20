@@ -1,0 +1,3 @@
+well: https://opengameart.org/content/covered-well
+chair: https://opengameart.org/content/wooden-chair
+bucket: https://sketchfab.com/3d-models/cc0-bucket-3-cb484683659d465796ed5af8664cf58f
