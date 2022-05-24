@@ -29,6 +29,7 @@ LINK_LIBRARIES(
 ADD_EXECUTABLE(engine
     src/main.cpp
     src/init.cpp
+    src/PhysicsWorld.cpp
     src/GameMap.cpp
     src/Logger.cpp
     src/ShaderProgram.cpp
