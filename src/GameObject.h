@@ -2,11 +2,12 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <glm/ext/matrix_transform.hpp>
 #include <string>
 #include <memory>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include "Model.h"
 #include "Texture.h"
 
@@ -22,9 +23,13 @@ protected:
     std::shared_ptr<Texture> m_texture;
     std::string m_name;
     flag_t m_flags{};
-    glm::vec3 m_pos{};
+
+    glm::vec3 m_pos;
+    glm::quat m_rot;
+    glm::vec3 m_scale;
     glm::mat4 m_modelMatrix;
 
+    void recalcModelMat();
 public:
     GameObject(
             std::shared_ptr<Model> model,
@@ -40,11 +45,15 @@ public:
 
     inline flag_t getFlags() const { return m_flags; }
     inline flag_t& getFlags() { return m_flags; }
+    inline const std::string& getName() const { return m_name; }
 
     void translate(const glm::vec3& vec);
     void rotate(float angleRad, const glm::vec3& axis);
     void scale(const glm::vec3& scale);
+
     void setPos(const glm::vec3& pos);
+    void setRotationQuat(const glm::quat& quat);
+
     void setTextureWrapMode(int horizontalWrapMode, int verticalWrapMode);
 
     void draw(unsigned int shaderId);

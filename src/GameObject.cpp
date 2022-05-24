@@ -1,34 +1,64 @@
 #include "GameObject.h"
+#include "Logger.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+GameObject::GameObject(
+        std::shared_ptr<Model> model,
+        std::shared_ptr<Texture> texture,
 GameObject::GameObject(std::shared_ptr<Model> model, std::shared_ptr<Texture> texture, const std::string& objectName/*="Object"*/, flag_t flags/*=defaultFlags*/)
     : m_model{model}, m_texture{texture}, m_name{objectName}, m_flags{flags}
+        const std::string& objectName/*="Object"*/,
+        flag_t flags/*=defaultFlags*/
+        )
+    : m_model{model}
+    , m_texture{texture}
+    , m_name{objectName}
+    , m_flags{flags}
+    , m_pos{}
+    , m_rot{1.0f, 0.0f, 0.0f, 0.0f}
+    , m_scale{1.0f, 1.0f, 1.0f}
+    , m_modelMatrix{glm::translate(glm::mat4{1.0f}, m_pos)}
 {
-    m_pos = {0.0f, 0.0f, 0.0f};
-    m_modelMatrix = glm::translate(glm::mat4{1.0f}, m_pos);
+    Logger::verb << "Created an GameObject (addr=" << this << ", name=" << m_name << ")" << Logger::End;
+}
+
+void GameObject::recalcModelMat()
+{
+    const glm::mat4 trans = glm::translate(glm::mat4{1.0}, m_pos);
+    const glm::mat4 rot = glm::mat4_cast(m_rot);
+    const glm::mat4 scale = glm::scale(glm::mat4(1.0), m_scale);
+    m_modelMatrix = trans * rot * scale;
 }
 
 void GameObject::translate(const glm::vec3& vec)
 {
-    m_modelMatrix = glm::translate(m_modelMatrix, vec);
     m_pos += vec;
+    recalcModelMat();
 }
 
 void GameObject::rotate(float angleRad, const glm::vec3& axis)
 {
-    m_modelMatrix = glm::rotate(m_modelMatrix, angleRad, axis);
+    m_rot = glm::rotate(m_rot, angleRad, axis);
+    recalcModelMat();
 }
 
 void GameObject::scale(const glm::vec3& scale)
 {
-    m_modelMatrix = glm::scale(m_modelMatrix, scale);
+    m_scale *= scale;
+    recalcModelMat();
 }
 
 void GameObject::setPos(const glm::vec3& pos)
 {
-    m_modelMatrix = glm::translate(m_modelMatrix, pos-m_pos);
     m_pos = pos;
+    recalcModelMat();
+}
+
+void GameObject::setRotationQuat(const glm::quat& quat)
+{
+    m_rot = quat;
+    recalcModelMat();
 }
 
 void GameObject::setTextureWrapMode(int horizontalWrapMode, int verticalWrapMode)
