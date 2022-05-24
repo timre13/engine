@@ -6,13 +6,15 @@
 GameObject::GameObject(
         std::shared_ptr<Model> model,
         std::shared_ptr<Texture> texture,
-GameObject::GameObject(std::shared_ptr<Model> model, std::shared_ptr<Texture> texture, const std::string& objectName/*="Object"*/, flag_t flags/*=defaultFlags*/)
-    : m_model{model}, m_texture{texture}, m_name{objectName}, m_flags{flags}
+        btCollisionShape* collShape,
+        btScalar mass,
         const std::string& objectName/*="Object"*/,
         flag_t flags/*=defaultFlags*/
         )
     : m_model{model}
     , m_texture{texture}
+    , m_collShape{collShape}
+    , m_mass{mass}
     , m_name{objectName}
     , m_flags{flags}
     , m_pos{}

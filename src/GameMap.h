@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <glm/vec3.hpp>
+#include <bullet/BulletCollision/btBulletCollisionCommon.h>
 #include "GameObject.h"
 
 class GameMap final
@@ -16,8 +17,11 @@ private:
         std::string             textureName;
         GameObject::flag_t      flags = GameObject::defaultFlags;
 
-        glm::vec3               pos{1.0f, 1.0f, 1.0f};
+        glm::vec3               pos{0.0f, 0.0f, 0.0f};
         glm::vec3               scale{1.0f, 1.0f, 1.0f};
+
+        btCollisionShape*       collShape;
+        btScalar                mass = 1.0f;
     };
 
     using objectList_t = std::vector<std::unique_ptr<ObjectDescr>>;

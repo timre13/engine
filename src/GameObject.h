@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <bullet/BulletCollision/btBulletCollisionCommon.h>
 #include "Model.h"
 #include "Texture.h"
 
@@ -18,9 +19,15 @@ public:
     static constexpr flag_t FLAG_VISIBLE = 1 << 0;
     static constexpr flag_t defaultFlags = FLAG_VISIBLE;
 
+    static constexpr btScalar MASS_STATIC = 0.0f;
+
 protected:
     std::shared_ptr<Model> m_model;
     std::shared_ptr<Texture> m_texture;
+
+    btCollisionShape* m_collShape{};
+    btScalar m_mass{};
+
     std::string m_name;
     flag_t m_flags{};
 
@@ -30,10 +37,15 @@ protected:
     glm::mat4 m_modelMatrix;
 
     void recalcModelMat();
+
+    friend class PhysicsWorld;
+
 public:
     GameObject(
             std::shared_ptr<Model> model,
             std::shared_ptr<Texture> texture,
+            btCollisionShape* collShape,
+            btScalar mass,
             const std::string& objectName="<Object>",
             flag_t flags=defaultFlags);
     // Copy ctor, copy assignment op

@@ -1,6 +1,9 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <SDL2/SDL.h>
+#include <bullet/BulletCollision/btBulletCollisionCommon.h>
+#include <bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
+#include <bullet/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <vector>
 #include <memory>
 #include <filesystem>
@@ -60,18 +63,73 @@ static UI::Window* createBuildMenuWin(std::shared_ptr<UI::OverlayRenderer> olren
 */
 
 
+class PhysicsWorld
 {
+private:
+    std::unique_ptr<btDefaultCollisionConfiguration> m_collisionConfig;
+    std::unique_ptr<btCollisionDispatcher> m_dispatcher;
+    std::unique_ptr<btBroadphaseInterface> m_overlappingPairCache;
+    std::unique_ptr<btSequentialImpulseConstraintSolver> m_solver;
+    std::unique_ptr<btDynamicsWorld> m_dynamicsWorld;
+    btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
+
+public:
+    PhysicsWorld()
+        : m_collisionConfig{std::make_unique<btDefaultCollisionConfiguration>()}
+        , m_dispatcher{std::make_unique<btCollisionDispatcher>(m_collisionConfig.get())}
+        , m_overlappingPairCache{std::make_unique<btDbvtBroadphase>()}
+        , m_solver{std::make_unique<btSequentialImpulseConstraintSolver>()}
+        , m_dynamicsWorld{std::make_unique<btDiscreteDynamicsWorld>(
+                m_dispatcher.get(), m_overlappingPairCache.get(), m_solver.get(), m_collisionConfig.get())}
     {
+        m_dynamicsWorld->setGravity(btVector3{0, -10, 0});
     }
 
+    void addObject(GameObject* obj)
     {
+        assert(obj);
+        if (!obj->m_collShape) // If not a physics object
+            return;            // FIXME: Handle it properly.
+                               //        The indexes get messed up if we have a
+                               //        game object that is not in the pworld list.
+        obj->m_collShape->setMargin(0.001f); // TODO: What to set here?
+        m_collisionShapes.push_back(obj->m_collShape);
+
+        btTransform startTransform;
+        startTransform.setIdentity();
+
+        const bool isDynamic = (obj->m_mass != GameObject::MASS_STATIC);
+
+        btVector3 localInertia{0, 0, 0};
+        if (isDynamic)
+            obj->m_collShape->calculateLocalInertia(obj->m_mass, localInertia);
+
+        startTransform.setOrigin(btVector3{obj->m_pos.x, obj->m_pos.y, obj->m_pos.z});
+
+        btDefaultMotionState* myMotionState = new btDefaultMotionState{startTransform};
+        btRigidBody::btRigidBodyConstructionInfo rbInfo{obj->m_mass, myMotionState, obj->m_collShape, localInertia};
+        btRigidBody* body = new btRigidBody{rbInfo};
+
+        m_dynamicsWorld->addRigidBody(body);
     }
+
+    void stepSimulation(float step)
     {
+        m_dynamicsWorld->stepSimulation(step, 10);
     }
+
+    size_t getObjectCount() const
     {
+        return m_dynamicsWorld->getNumCollisionObjects();
     }
+
+    btCollisionObject* getObj(size_t i)
     {
+        if (i >= (size_t)m_dynamicsWorld->getNumCollisionObjects())
+            return nullptr;
+        return m_dynamicsWorld->getCollisionObjectArray()[i];
     }
+};
 
 int main()
 {
@@ -91,7 +149,7 @@ int main()
 
     int winW, winH;
     SDL_GetWindowSize(window, &winW, &winH);
-    Camera camera{{0.0f, 1.0f, 0.0f}, (float)winW/winH};
+    Camera camera{{0.0f, 10.0f, 0.0f}, (float)winW/winH};
     camera.setFovDeg(45.0f);
     camera.updateShaderUniforms(shader.getId());
 
@@ -111,6 +169,8 @@ int main()
     if (overlayRenderer->construct("../assets/crosshair.obj"))
         return 1;
     //auto buildMenuWindow = std::unique_ptr<UI::Window>{createBuildMenuWin(overlayRenderer, models.size())};
+
+    PhysicsWorld pworld;
 
     std::vector<std::unique_ptr<GameObject>> gameObjects;
     GameMap map;
@@ -162,9 +222,11 @@ int main()
             }
         }
 
-        gameObjects.push_back(std::unique_ptr<GameObject>{new GameObject{model, texture, objdescr->objName, objdescr->flags}});
+        gameObjects.push_back(std::unique_ptr<GameObject>{new GameObject{
+                model, texture, objdescr->collShape, objdescr->mass, objdescr->objName, objdescr->flags}});
         gameObjects.back()->setPos(objdescr->pos);
         gameObjects.back()->scale(objdescr->scale);
+        pworld.addObject(gameObjects.back().get());
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -336,6 +398,22 @@ int main()
                 {windowW-DEF_FONT_SIZE*8, windowH-DEF_FONT_SIZE*2});
 
         overlayRenderer->commit();
+
+        // Update physics
+        pworld.stepSimulation(1/60.0f);
+        for (size_t i{}; i < pworld.getObjectCount(); ++i)
+        {
+            auto cobj = pworld.getObj(i);
+            assert(cobj);
+            auto cbody = btRigidBody::upcast(cobj);
+            assert(cbody);
+            if (cbody)
+            {
+                auto trans = cobj->getWorldTransform();
+                gameObjects[i]->setPos({trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ()});
+                gameObjects[i]->setRotationQuat({trans.getRotation().w(), trans.getRotation().x(), trans.getRotation().y(), trans.getRotation().z()});
+            }
+        }
 
         SDL_GL_SwapWindow(window);
     }

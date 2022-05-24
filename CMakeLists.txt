@@ -12,6 +12,7 @@ PROJECT(engine VERSION 1.0)
 INCLUDE_DIRECTORIES(
     /usr/include/freetype2
     /usr/include/libpng16
+    /usr/include/bullet
 )
 
 LINK_LIBRARIES(
@@ -19,6 +20,10 @@ LINK_LIBRARIES(
     GL
     GLEW
     freetype
+    BulletSoftBody
+    BulletDynamics
+    BulletCollision
+    LinearMath
 )
 
 ADD_EXECUTABLE(engine
