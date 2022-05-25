@@ -112,7 +112,7 @@ GameMap::GameMap()
                 4.0f,
                 4.0f,
             },
-            .collShape = new btSphereShape{2.f},
+            .collShape = new btSphereShape{1.85f},
             .mass = 10.0f,
     }});
 

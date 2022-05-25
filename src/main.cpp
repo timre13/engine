@@ -294,6 +294,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Update physics
+        pworld.updateDbgDrawUniforms(camera); // TODO: Refactor debug drawing
         pworld.stepSimulation(1/60.0f);
         pworld.applyTransforms(gameObjects);
 
@@ -302,6 +303,7 @@ int main()
         for (size_t i{}; i < gameObjects.size(); ++i)
             gameObjects[i]->draw(shader.getId());
 
+        /*
         if (isBuildMenuShown)
         {
             const float windowRatio = (float)windowW/windowH;

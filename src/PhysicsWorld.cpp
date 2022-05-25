@@ -7,13 +7,24 @@ PhysicsWorld::PhysicsWorld()
     , m_solver{std::make_unique<btSequentialImpulseConstraintSolver>()}
     , m_dynamicsWorld{std::make_unique<btDiscreteDynamicsWorld>(
             m_dispatcher.get(), m_overlappingPairCache.get(), m_solver.get(), m_collisionConfig.get())}
+    , m_dbgDrawer{std::make_unique<PhysicsDebugDraw>()}
 {
     m_dynamicsWorld->setGravity(btVector3{0, -10, 0});
+    m_dynamicsWorld->setDebugDrawer(m_dbgDrawer.get());
+    m_dbgDrawer->setDebugMode(PhysicsDebugDraw::DBG_DrawWireframe);
+
+    // TODO: Toggling debug draw mode with keybinding
+}
+
+void PhysicsWorld::updateDbgDrawUniforms(Camera& cam)
+{
+    m_dbgDrawer->updateUniforms(cam);
 }
 
 void PhysicsWorld::stepSimulation(float step)
 {
     m_dynamicsWorld->stepSimulation(step, 10);
+    m_dynamicsWorld->debugDrawWorld();
 }
 
 void PhysicsWorld::applyTransforms(std::vector<std::unique_ptr<GameObject>>& objs)

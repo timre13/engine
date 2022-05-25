@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "GameObject.h"
+#include "PhysicsDebugDraw.h"
 #include <bullet/BulletCollision/btBulletCollisionCommon.h>
 #include <bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
 #include <bullet/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
@@ -16,9 +17,12 @@ private:
     std::unique_ptr<btDynamicsWorld> m_dynamicsWorld;
     btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
 
+    std::unique_ptr<PhysicsDebugDraw> m_dbgDrawer;
+
 public:
     PhysicsWorld();
 
+    void updateDbgDrawUniforms(Camera& cam);
     void stepSimulation(float step);
     void applyTransforms(std::vector<std::unique_ptr<GameObject>>& objs);
 
