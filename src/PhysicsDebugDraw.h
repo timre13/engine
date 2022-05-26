@@ -31,8 +31,6 @@ public:
 
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, (void*)0);
         glEnableVertexAttribArray(0);
-
-        // FIXME: Deallocate everything in dtor
     }
 
     void updateUniforms(Camera& cam)
@@ -87,5 +85,11 @@ public:
     virtual inline int getDebugMode() const
     {
         return m_drawMode;
+    }
+
+    ~PhysicsDebugDraw()
+    {
+        glDeleteVertexArrays(1, &m_lineVAO);
+        glDeleteBuffers(1, &m_lineVBO);
     }
 };
