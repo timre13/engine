@@ -159,8 +159,6 @@ int main()
         pworld.addObject(gameObjects.back().get());
     }
 
-    glEnable(GL_DEPTH_TEST);
-
     uint32_t lastTime{};
     uint32_t deltaTime{};
     SDL_ShowCursor(false);
