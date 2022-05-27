@@ -41,7 +41,12 @@ public:
 
     virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
     {
-        (void)color; // TODO: Set color in shader
+        static btVector3 lastLineColor{};
+        if (lastLineColor != color)
+        {
+            lastLineColor = color;
+            glUniform3f(glGetUniformLocation(m_lineShader.getId(), "lineColor"), color.x(), color.y(), color.z());
+        }
 
         glBindVertexArray(m_lineVAO);
         glBindBuffer(GL_ARRAY_BUFFER, m_lineVBO);

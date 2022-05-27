@@ -2,9 +2,10 @@
 
 out vec4 outColor;
 
+uniform vec3 lineColor;
+
 void main()
 {
-    // TODO: Setting color
-    outColor = vec4(1.0, 0.0, 0.0, 1.0);
+    outColor = vec4(lineColor.rgb, 1.0);
 }
 
