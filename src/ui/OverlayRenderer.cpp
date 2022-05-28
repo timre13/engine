@@ -248,11 +248,11 @@ void OverlayRenderer::commit()
                 {
                 case '\n':
                     textX = cmd->textPos.x;
-                    textY += (float)DEF_FONT_SIZE;
+                    textY -= (float)DEF_FONT_SIZE;
                     break;
 
                 case '\t':
-                    textX += (float)DEF_FONT_SIZE;
+                    textX += (float)DEF_FONT_SIZE*4;
                     break;
  
                 default: // Printable char
