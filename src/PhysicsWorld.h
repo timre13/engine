@@ -22,6 +22,9 @@ private:
 public:
     PhysicsWorld();
 
+    void setDbgMode(PhysicsDebugDraw::DebugDrawModes mode);
+    void setDbgMode(int mode);
+    PhysicsDebugDraw::DebugDrawModes getDbgMode() const;
     void updateDbgDrawUniforms(Camera& cam);
     void stepSimulation(float step);
     void applyTransforms(std::vector<std::unique_ptr<GameObject>>& objs);

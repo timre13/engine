@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <filesystem>
+#include <functional>
 #include "init.h"
 #include "Logger.h"
 #include "ShaderProgram.h"
@@ -159,11 +160,60 @@ int main()
         pworld.addObject(gameObjects.back().get());
     }
 
+    bool isDbgMenuOpen = false;
+    bool isWireframeMode = false;
+    bool isBlendingOn = true;
+    bool isFaceCullingOn = true;
+    struct DbgMenuItem
+    {
+        std::string name;
+        std::function<void()> callback;
+        std::function<bool()> isOn;
+    };
+    const DbgMenuItem dbgMenuItems[]{
+        {"Wireframe mode", [&](){
+            isWireframeMode = !isWireframeMode;
+            glPolygonMode(GL_FRONT_AND_BACK, isWireframeMode ? GL_LINE : GL_FILL);
+        }, [&](){
+            return isWireframeMode;
+        }},
+        {"Blending", [&](){
+            isBlendingOn = !isBlendingOn;
+            if (isBlendingOn) glEnable(GL_BLEND);
+            else glDisable(GL_BLEND);
+        }, [&](){
+            return isBlendingOn;
+        }},
+        {"Face culling", [&](){
+            isFaceCullingOn = !isFaceCullingOn;
+            if (isFaceCullingOn) glEnable(GL_CULL_FACE);
+            else glDisable(GL_CULL_FACE);
+        }, [&](){
+            return isFaceCullingOn;
+        }},
+        {"Bullet: Wireframe mode", [&](){
+            pworld.setDbgMode(pworld.getDbgMode() ^ btIDebugDraw::DBG_DrawWireframe);
+        }, [&](){
+            return pworld.getDbgMode() & btIDebugDraw::DBG_DrawWireframe;
+        }},
+        {"Bullet: Draw AABB", [&](){
+            pworld.setDbgMode(pworld.getDbgMode() ^ btIDebugDraw::DBG_DrawAabb);
+        }, [&](){
+            return pworld.getDbgMode() & btIDebugDraw::DBG_DrawAabb;
+        }},
+        {"Bullet: No deactivation", [&](){
+            pworld.setDbgMode(pworld.getDbgMode() ^ btIDebugDraw::DBG_NoDeactivation);
+        }, [&](){
+            return pworld.getDbgMode() & btIDebugDraw::DBG_NoDeactivation;
+        }},
+    };
+    constexpr int DBG_MENU_ITEM_COUNT = sizeof(dbgMenuItems)/sizeof(dbgMenuItems[0]);
+    static_assert(DBG_MENU_ITEM_COUNT <= 9); // Only implemented for number keys (0 excluded)
+
     uint32_t lastTime{};
     uint32_t deltaTime{};
     SDL_ShowCursor(false);
     bool shouldQuit = false;
-    bool isInWireframeMode = false;
     bool isPaused = false;
     bool isBuildMenuShown = false;
     glm::vec<2, int> currCursorPos{};
@@ -178,7 +228,7 @@ int main()
         prevCursorPos.y = currCursorPos.y;
 
         uint32_t mouseButtonState = SDL_GetMouseState(&currCursorPos.x, &currCursorPos.y);
-        bool isLeftMouseButtonBeingReleased{};
+        //bool isLeftMouseButtonBeingReleased{};
 
         SDL_Event event;
         while (SDL_PollEvent(&event) && !shouldQuit)
@@ -209,13 +259,7 @@ int main()
                     break;
 
                 case SDLK_TAB:
-                    isPaused = !isPaused;
-                    SDL_ShowCursor(isBuildMenuShown || isPaused);
-                    break;
-
-                case SDLK_F3:
-                    isInWireframeMode = !isInWireframeMode;
-                    glPolygonMode(GL_FRONT_AND_BACK, isInWireframeMode ? GL_LINE : GL_FILL);
+                    isDbgMenuOpen = !isDbgMenuOpen;
                     break;
 
                 case SDLK_e:
@@ -223,13 +267,21 @@ int main()
                     SDL_ShowCursor(isBuildMenuShown || isPaused);
                     break;
                 }
+
+                // Handle number keys while the debug menu is open
+                if (isDbgMenuOpen)
+                {
+                    const int index = event.key.keysym.sym-SDLK_1;
+                    if (index >= 0 && index < DBG_MENU_ITEM_COUNT)
+                        dbgMenuItems[index].callback();
+                }
                 break;
 
             case SDL_MOUSEBUTTONUP:
                 switch (event.button.button)
                 {
                 case SDL_BUTTON_LEFT:
-                    isLeftMouseButtonBeingReleased = true;
+                    //isLeftMouseButtonBeingReleased = true;
                     break;
                 }
                 break;
@@ -290,6 +342,14 @@ int main()
 
         glClearColor(0.34f, 0.406f, 0.642f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (isDbgMenuOpen)
+        {
+            std::string str = "Debug options:";
+            for (int i{}; i < DBG_MENU_ITEM_COUNT; ++i)
+                str += std::string("\n")+char('1'+i)+": "+dbgMenuItems[i].name+(dbgMenuItems[i].isOn() ? ": ON" : ": OFF");
+            overlayRenderer->renderTextAtPerc(str, 1.0f, {1.f, 53.f}, {1.0f, 1.0f, 0.0f});
+        }
 
         // Update physics
         pworld.updateDbgDrawUniforms(camera); // TODO: Refactor debug drawing

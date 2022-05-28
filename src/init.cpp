@@ -127,7 +127,8 @@ int initVideo(SDL_Window** winOut, SDL_GLContext* contOut, bool* isVSyncActiveOu
     glEnable(GL_DEPTH_TEST);
 
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+
+    glLineWidth(3.0f);
 
     Logger::log << "Using OpenGL " << glGetString(GL_VERSION) << Logger::End;
 

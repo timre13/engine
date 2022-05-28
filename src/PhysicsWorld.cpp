@@ -11,14 +11,29 @@ PhysicsWorld::PhysicsWorld()
 {
     m_dynamicsWorld->setGravity(btVector3{0, -10, 0});
     m_dynamicsWorld->setDebugDrawer(m_dbgDrawer.get());
-    m_dbgDrawer->setDebugMode(PhysicsDebugDraw::DBG_DrawWireframe);
+}
 
-    // TODO: Toggling debug draw mode with keybinding
+void PhysicsWorld::setDbgMode(PhysicsDebugDraw::DebugDrawModes mode)
+{
+    m_dbgDrawer->setDebugMode(mode);
+}
+
+void PhysicsWorld::setDbgMode(int mode)
+{
+    m_dbgDrawer->setDebugMode(mode);
+}
+
+PhysicsDebugDraw::DebugDrawModes PhysicsWorld::getDbgMode() const
+{
+    return (PhysicsDebugDraw::DebugDrawModes)m_dbgDrawer->getDebugMode();
 }
 
 void PhysicsWorld::updateDbgDrawUniforms(Camera& cam)
 {
-    m_dbgDrawer->updateUniforms(cam);
+    if (m_dbgDrawer->getDebugMode() != PhysicsDebugDraw::DebugDrawModes::DBG_NoDebug)
+    {
+        m_dbgDrawer->updateUniforms(cam);
+    }
 }
 
 void PhysicsWorld::stepSimulation(float step)
