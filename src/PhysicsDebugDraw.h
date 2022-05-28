@@ -63,23 +63,31 @@ public:
     }
 
     virtual void drawContactPoint(
-            const btVector3& PointOnB,
+            const btVector3& pointOnB,
             const btVector3& normalOnB,
             btScalar distance,
             int lifeTime,
             const btVector3& color)
     {
         // TODO
+        (void)pointOnB;
+        (void)normalOnB;
+        (void)distance;
+        (void)lifeTime;
+        (void)color;
     }
 
     virtual void reportErrorWarning(const char* warningString)
     {
         // TODO
+        (void)warningString;
     }
 
     virtual void draw3dText(const btVector3& location, const char* textString)
     {
         // TODO
+        (void)location;
+        (void)textString;
     }
 
     virtual inline void setDebugMode(int debugMode)
