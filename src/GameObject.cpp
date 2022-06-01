@@ -68,13 +68,15 @@ void GameObject::setTextureWrapMode(int horizontalWrapMode, int verticalWrapMode
     m_texture->setWrapMode(horizontalWrapMode, verticalWrapMode);
 }
 
-void GameObject::draw(unsigned int shaderId)
+size_t GameObject::draw(unsigned int shaderId)
 {
     if ((m_flags & FLAG_VISIBLE) == 0)
-        return;
+        return 0;
 
     glUniformMatrix4fv(glGetUniformLocation(shaderId, "modelMat"), 1, GL_FALSE, glm::value_ptr(m_modelMatrix));
 
     m_texture->bind();
     m_model->draw();
+
+    return m_model->getVertCount();
 }

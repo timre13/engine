@@ -389,10 +389,11 @@ int main()
         pworld.stepSimulation(1/60.0f);
         pworld.applyTransforms(gameObjects);
 
+        size_t drawnVertices{};
         shader.use();
         camera.updateShaderUniforms(shader.getId());
         for (size_t i{}; i < gameObjects.size(); ++i)
-            gameObjects[i]->draw(shader.getId());
+            drawnVertices += gameObjects[i]->draw(shader.getId());
 
         /*
         if (isBuildMenuShown)
@@ -417,12 +418,13 @@ int main()
         }
         */
 
-        std::string fpsText = "FT: " + std::to_string(deltaTime) + "ms\n"
-            + std::to_string(int(1/(deltaTime/1000.0))) + " FPS";
-        overlayRenderer->renderTextAtPx(
-                fpsText,
-                1.0f,
-                {windowW-DEF_FONT_SIZE*8, windowH-DEF_FONT_SIZE*2});
+        const std::string renderInfoText
+            = "FT: " + std::to_string(deltaTime) + "ms"
+            + "\nFPS: " + std::to_string(int(1/(deltaTime/1000.0)))
+            + "\nObjs drawn: " + std::to_string(gameObjects.size())
+            + "\nVerts drawn: " + std::to_string(drawnVertices);
+        overlayRenderer->renderTextAtPx(renderInfoText, 1.0f,
+                {windowW-DEF_FONT_SIZE*15, windowH-DEF_FONT_SIZE*2});
 
         overlayRenderer->commit();
 

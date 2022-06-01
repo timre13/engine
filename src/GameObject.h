@@ -68,6 +68,7 @@ public:
 
     void setTextureWrapMode(int horizontalWrapMode, int verticalWrapMode);
 
-    void draw(unsigned int shaderId);
+    // Returns: The number of vertices drawn
+    size_t draw(unsigned int shaderId);
 };
 
