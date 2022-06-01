@@ -67,11 +67,10 @@ void PhysicsWorld::addObject(GameObject* obj)
     assert(obj);
     if (!obj->m_collShape)
     {
-        obj->m_collShape = new btEmptyShape;
+        obj->m_collShape.reset(new btEmptyShape);
         assert(obj->m_mass == 0); // Don't allow non-static non-colliding objects
     }
     obj->m_collShape->setMargin(0.001f); // TODO: What to set here?
-    m_collisionShapes.push_back(obj->m_collShape);
 
     btTransform startTransform;
     startTransform.setIdentity();
@@ -84,11 +83,9 @@ void PhysicsWorld::addObject(GameObject* obj)
 
     startTransform.setOrigin(btVector3{obj->m_pos.x, obj->m_pos.y, obj->m_pos.z});
 
-    // FIXME: Fix memory leaks
-
-    btDefaultMotionState* myMotionState = new btDefaultMotionState{startTransform};
+    btDefaultMotionState* motionState = new btDefaultMotionState{startTransform};
     btRigidBody::btRigidBodyConstructionInfo rbInfo{
-        obj->m_mass, myMotionState, obj->m_collShape, localInertia};
+        obj->m_mass, motionState, obj->m_collShape.get(), localInertia};
     btRigidBody* body = new btRigidBody{rbInfo};
 
     m_dynamicsWorld->addRigidBody(body);
@@ -99,4 +96,17 @@ btCollisionObject* PhysicsWorld::getObj(size_t i)
     if (i >= (size_t)m_dynamicsWorld->getNumCollisionObjects())
         return nullptr;
     return m_dynamicsWorld->getCollisionObjectArray()[i];
+}
+
+PhysicsWorld::~PhysicsWorld()
+{
+    for (int i{}; i < m_dynamicsWorld->getNumCollisionObjects(); ++i)
+    {
+        btCollisionObject* obj = m_dynamicsWorld->getCollisionObjectArray()[i];
+        btRigidBody* body = btRigidBody::upcast(obj);
+        assert(body);
+        assert(body->getMotionState());
+        delete body->getMotionState();
+        delete obj;
+    }
 }

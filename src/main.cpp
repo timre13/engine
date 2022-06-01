@@ -104,60 +104,63 @@ int main()
     PhysicsWorld pworld;
 
     std::vector<std::unique_ptr<GameObject>> gameObjects;
-    GameMap map;
-    for (const auto& objdescr : map.getObjects())
     {
-        std::shared_ptr<Model> model{};
+        GameMap map;
+        // Note: `objdescr->collShape` will be cleared here
+        for (const auto& objdescr : map.getObjects())
         {
-            const auto& modelName = objdescr->modelName;
-
-            auto modelit = modelCache.find(modelName);
-            if (modelit == modelCache.end())
+            std::shared_ptr<Model> model{};
             {
-                Logger::verb << "Model \"" << modelName << "\" is NOT in the cache, loading" << Logger::End;
-                // Load the model if not found in the model cache
-                model = modelCache.insert({modelName, std::make_shared<Model>(ASSET_DIR_MODELS"/"+modelName)}).first->second;
-            }
-            else
-            {
-                Logger::verb << "Model \"" << modelName << "\" is in the cache" << Logger::End;
-                model = modelit->second;
-            }
-        }
+                const auto& modelName = objdescr->modelName;
 
-        std::shared_ptr<Texture> texture{};
-        {
-            const auto& textureName = objdescr->textureName;
-
-            auto texit = textureCache.find(textureName);
-            if (texit == textureCache.end())
-            {
-                Logger::verb << "Texture \"" << textureName << "\" is NOT in the cache, loading" << Logger::End;
-                // Load the texture if not found in the texture cache
-                auto tex = std::make_shared<Texture>();
-                if (tex->open(ASSET_DIR_TEXTURES"/"+textureName)) // Try to open texture
+                auto modelit = modelCache.find(modelName);
+                if (modelit == modelCache.end())
                 {
-                    texture = textureCache.find("")->second; // Use placeholder texture if failed
-                    assert(texture);
-                    Logger::warn << "Using placeholder texture for this object" << Logger::End;
+                    Logger::log << "Model \"" << modelName << "\" is NOT in the cache, loading" << Logger::End;
+                    // Load the model if not found in the model cache
+                    model = modelCache.insert({modelName, std::make_shared<Model>(ASSET_DIR_MODELS"/"+modelName)}).first->second;
                 }
                 else
                 {
-                    texture = textureCache.insert({textureName, tex}).first->second;
+                    //Logger::verb << "Model \"" << modelName << "\" is in the cache" << Logger::End;
+                    model = modelit->second;
                 }
             }
-            else
-            {
-                Logger::verb << "Texture \"" << textureName << "\" is in the cache" << Logger::End;
-                texture = texit->second;
-            }
-        }
 
-        gameObjects.push_back(std::unique_ptr<GameObject>{new GameObject{
-                model, texture, objdescr->collShape, objdescr->mass, objdescr->objName, objdescr->flags}});
-        gameObjects.back()->setPos(objdescr->pos);
-        gameObjects.back()->scale(objdescr->scale);
-        pworld.addObject(gameObjects.back().get());
+            std::shared_ptr<Texture> texture{};
+            {
+                const auto& textureName = objdescr->textureName;
+
+                auto texit = textureCache.find(textureName);
+                if (texit == textureCache.end())
+                {
+                    Logger::log << "Texture \"" << textureName << "\" is NOT in the cache, loading" << Logger::End;
+                    // Load the texture if not found in the texture cache
+                    auto tex = std::make_shared<Texture>();
+                    if (tex->open(ASSET_DIR_TEXTURES"/"+textureName)) // Try to open texture
+                    {
+                        texture = textureCache.find("")->second; // Use placeholder texture if failed
+                        assert(texture);
+                        Logger::warn << "Using placeholder texture for this object" << Logger::End;
+                    }
+                    else
+                    {
+                        texture = textureCache.insert({textureName, tex}).first->second;
+                    }
+                }
+                else
+                {
+                    //Logger::verb << "Texture \"" << textureName << "\" is in the cache" << Logger::End;
+                    texture = texit->second;
+                }
+            }
+
+            gameObjects.push_back(std::unique_ptr<GameObject>{new GameObject{
+                    model, texture, std::move(objdescr->collShape), objdescr->mass, objdescr->objName, objdescr->flags}});
+            gameObjects.back()->setPos(objdescr->pos);
+            gameObjects.back()->scale(objdescr->scale);
+            pworld.addObject(gameObjects.back().get());
+        }
     }
 
     bool isDbgMenuOpen = false;
@@ -299,7 +302,7 @@ int main()
                     if (cb.hasHit())
                     {
                         // Get the object that is colliding with the ray
-                        btCollisionObject* obj = (btCollisionObject*)cb.m_collisionObject;
+                        btCollisionObject* obj = (btCollisionObject*)cb.m_collisionObject; // const -> nonconst cast?
                         assert(obj);
                         obj->activate(true);
                         auto rigidBody = btRigidBody::upcast(obj);

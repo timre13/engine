@@ -15,12 +15,12 @@ private:
     std::unique_ptr<btBroadphaseInterface> m_overlappingPairCache;
     std::unique_ptr<btSequentialImpulseConstraintSolver> m_solver;
     std::unique_ptr<btDynamicsWorld> m_dynamicsWorld;
-    btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
 
     std::unique_ptr<PhysicsDebugDraw> m_dbgDrawer;
 
 public:
     PhysicsWorld();
+    ~PhysicsWorld();
 
     void setDbgMode(PhysicsDebugDraw::DebugDrawModes mode);
     void setDbgMode(int mode);

@@ -20,7 +20,7 @@ private:
         glm::vec3               pos{0.0f, 0.0f, 0.0f};
         glm::vec3               scale{1.0f, 1.0f, 1.0f};
 
-        btCollisionShape*       collShape;
+        std::unique_ptr<btCollisionShape> collShape;
         btScalar                mass = 1.0f;
     };
 

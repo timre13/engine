@@ -27,7 +27,7 @@ GameMap::GameMap()
                         1.0f,
                         floorScale,
                     },
-                    .collShape = new btBoxShape{btVector3{floorScale/2, .0005f, floorScale/2}},
+                    .collShape{new btBoxShape{btVector3{floorScale/2, .0005f, floorScale/2}}},
                     .mass = 0.f,
             }});
     //    }
@@ -91,12 +91,14 @@ GameMap::GameMap()
                             1.0f,
                             1.0f,
                         },
-                        .collShape = new btBoxShape{btVector3{.5f, .5f, .5f}},
+                        .collShape{new btBoxShape{btVector3{.5f, .5f, .5f}}},
                         .mass = 1.f,
                 }});
             }
+#if 0
         }
     }
+#endif
 
     m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
             .objName = "Sphere",
@@ -112,7 +114,7 @@ GameMap::GameMap()
                 4.0f,
                 4.0f,
             },
-            .collShape = new btSphereShape{1.85f},
+            .collShape{new btSphereShape{1.85f}},
             .mass = 10.0f,
     }});
 

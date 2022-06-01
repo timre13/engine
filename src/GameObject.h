@@ -25,7 +25,7 @@ protected:
     std::shared_ptr<Model> m_model;
     std::shared_ptr<Texture> m_texture;
 
-    btCollisionShape* m_collShape{};
+    std::unique_ptr<btCollisionShape> m_collShape{};
     btScalar m_mass{};
 
     std::string m_name;
@@ -44,7 +44,7 @@ public:
     GameObject(
             std::shared_ptr<Model> model,
             std::shared_ptr<Texture> texture,
-            btCollisionShape* collShape,
+            std::unique_ptr<btCollisionShape> collShape,
             btScalar mass,
             const std::string& objectName="<Object>",
             flag_t flags=defaultFlags);
