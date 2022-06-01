@@ -23,7 +23,7 @@ std::string runExternalCommand(const std::string& command)
 std::string getFontFilePath(const std::string& fontName)
 {
 #ifdef OS_LINUX
-    return runExternalCommand("fc-match --format=%{file} "+fontName);
+    return runExternalCommand("fc-match --format=%{file} \""+fontName+"\"");
 #else
 #error "TODO: Unimplemented"
 #endif
