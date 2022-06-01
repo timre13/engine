@@ -386,7 +386,9 @@ int main()
 
         // Update physics
         pworld.updateDbgDrawUniforms(camera); // TODO: Refactor debug drawing
+        const uint32_t phyStepStart = SDL_GetTicks();
         pworld.stepSimulation(1/60.0f);
+        const uint32_t phyStepDur = SDL_GetTicks()-phyStepStart;
         pworld.applyTransforms(gameObjects);
 
         size_t drawnVertices{};
@@ -419,10 +421,11 @@ int main()
         */
 
         const std::string renderInfoText
-            = "FT: " + std::to_string(deltaTime) + "ms"
-            + "\nFPS: " + std::to_string(int(1/(deltaTime/1000.0)))
-            + "\nObjs drawn: " + std::to_string(gameObjects.size())
-            + "\nVerts drawn: " + std::to_string(drawnVertices);
+            = "Frame time:   " + std::to_string(deltaTime) + "ms"
+            + "\nPhysics time: " + std::to_string(phyStepDur) + "ms"
+            + "\nFPS:          " + std::to_string(int(1/(deltaTime/1000.0)))
+            + "\nObjs drawn:   " + std::to_string(gameObjects.size())
+            + "\nVerts drawn:  " + std::to_string(drawnVertices);
         overlayRenderer->renderTextAtPx(renderInfoText, 1.0f,
                 {windowW-DEF_FONT_SIZE*15, windowH-DEF_FONT_SIZE*2});
 

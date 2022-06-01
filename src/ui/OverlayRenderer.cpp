@@ -37,7 +37,7 @@ static void setUpFont(std::map<char, OverlayRenderer::Character>* characters, ui
         abort();
     }
 
-    std::string fontFilePath = OS::getFontFilePath("freesans");
+    std::string fontFilePath = OS::getFontFilePath("DejaVu Sans Mono");
     if (fontFilePath.empty())
     {
         Logger::err << "Failed to get font file path" << Logger::End;
