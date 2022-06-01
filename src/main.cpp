@@ -155,8 +155,13 @@ int main()
                 }
             }
 
+            const glm::vec3 mRotRad = {
+                glm::radians(objdescr->modelRotDeg.x),
+                glm::radians(objdescr->modelRotDeg.y),
+                glm::radians(objdescr->modelRotDeg.z)};
+
             gameObjects.push_back(std::unique_ptr<GameObject>{new GameObject{
-                    model, texture, std::move(objdescr->collShape), objdescr->mass, objdescr->objName, objdescr->flags}});
+                    model, mRotRad, texture, std::move(objdescr->collShape), objdescr->mass, objdescr->objName, objdescr->flags}});
             gameObjects.back()->setPos(objdescr->pos);
             gameObjects.back()->scale(objdescr->scale);
             pworld.addObject(gameObjects.back().get());

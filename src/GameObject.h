@@ -23,6 +23,7 @@ public:
 
 protected:
     std::shared_ptr<Model> m_model;
+    glm::quat m_mRot; // Model rotation
     std::shared_ptr<Texture> m_texture;
 
     std::unique_ptr<btCollisionShape> m_collShape{};
@@ -43,6 +44,7 @@ protected:
 public:
     GameObject(
             std::shared_ptr<Model> model,
+            const glm::vec3& modelRotRad,
             std::shared_ptr<Texture> texture,
             std::unique_ptr<btCollisionShape> collShape,
             btScalar mass,

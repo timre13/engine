@@ -91,6 +91,11 @@ GameMap::GameMap()
                             1.0f,
                             1.0f,
                         },
+                        .modelRotDeg = {
+                            90.0f,
+                            90.0f,
+                            0.0f,
+                        },
                         .collShape{new btBoxShape{btVector3{.5f, .5f, .5f}}},
                         .mass = 1.f,
                 }});
