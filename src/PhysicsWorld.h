@@ -7,7 +7,7 @@
 #include <bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
 #include <bullet/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 
-class PhysicsWorld
+class PhysicsWorld final
 {
 private:
     std::unique_ptr<btDefaultCollisionConfiguration> m_collisionConfig;
@@ -32,5 +32,7 @@ public:
     void addObject(GameObject* obj);
     inline size_t getObjectCount() const { return m_dynamicsWorld->getNumCollisionObjects(); };
     btCollisionObject* getObj(size_t i);
+
+    inline btDynamicsWorld* getWorld() { return m_dynamicsWorld.get(); }
 };
 

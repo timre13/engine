@@ -30,3 +30,18 @@ void Camera::updateShaderUniforms(uint shaderId)
     glUniformMatrix4fv(glGetUniformLocation(shaderId, "projMat"), 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 }
 
+btVector3 Camera::getPositionBt() const
+{
+    return {m_position.x, m_position.y, m_position.z};
+}
+
+btVector3 Camera::getFrontPosBt(float frontVecLen/*=1.0f*/) const
+{
+    const glm::vec3 front = m_position + m_frontVector*frontVecLen;
+    return {front.x, front.y, front.z};
+}
+
+btVector3 Camera::getFrontVecBt() const
+{
+    return {m_frontVector.x, m_frontVector.y, m_frontVector.z};
+}

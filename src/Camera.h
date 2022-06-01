@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <bullet/LinearMath/btVector3.h>
 
 class Camera
 {
@@ -50,5 +51,8 @@ public:
     inline float getPitchDeg() { return m_pitchDeg; }
 
     inline const glm::vec3& getPosition() const { return m_position; }
+    btVector3 getPositionBt() const;
+    btVector3 getFrontPosBt(float frontVecLen=1.0f) const;
+    btVector3 getFrontVecBt() const;
 };
 

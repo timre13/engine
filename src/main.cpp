@@ -285,6 +285,36 @@ int main()
                     break;
                 }
                 break;
+
+            case SDL_MOUSEBUTTONDOWN:
+                switch (event.button.button)
+                {
+                case SDL_BUTTON_LEFT:
+                {
+                    static constexpr float RAY_LEN = 10.0f;
+                    const btVector3 fromVec = camera.getPositionBt();
+                    const btVector3 toVec = camera.getFrontPosBt(RAY_LEN);
+                    btCollisionWorld::ClosestRayResultCallback cb{fromVec, toVec};
+                    pworld.getWorld()->rayTest(fromVec, toVec, cb);
+                    if (cb.hasHit())
+                    {
+                        // Get the object that is colliding with the ray
+                        btCollisionObject* obj = (btCollisionObject*)cb.m_collisionObject;
+                        assert(obj);
+                        obj->activate(true);
+                        auto rigidBody = btRigidBody::upcast(obj);
+                        assert(rigidBody);
+                        const btVector3 collPos = fromVec.lerp(toVec, cb.m_closestHitFraction);
+                        static constexpr float PUSH_FORCE = 5.0f;
+                        // Apply force at the point of the object where the camera is facing at
+                        rigidBody->applyImpulse(
+                                camera.getFrontVecBt()*PUSH_FORCE,
+                                collPos-rigidBody->getWorldTransform().getOrigin());
+                    }
+                    break;
+                }
+                }
+                break;
             }
         }
         if (shouldQuit)
