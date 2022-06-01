@@ -65,10 +65,11 @@ void PhysicsWorld::applyTransforms(std::vector<std::unique_ptr<GameObject>>& obj
 void PhysicsWorld::addObject(GameObject* obj)
 {
     assert(obj);
-    if (!obj->m_collShape) // If not a physics object
-        return;            // FIXME: Handle it properly.
-                           //        The indexes get messed up if we have a
-                           //        game object that is not in the pworld list.
+    if (!obj->m_collShape)
+    {
+        obj->m_collShape = new btEmptyShape;
+        assert(obj->m_mass == 0); // Don't allow non-static non-colliding objects
+    }
     obj->m_collShape->setMargin(0.001f); // TODO: What to set here?
     m_collisionShapes.push_back(obj->m_collShape);
 
