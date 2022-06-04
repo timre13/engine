@@ -13,6 +13,7 @@ INCLUDE_DIRECTORIES(
     /usr/include/freetype2
     /usr/include/libpng16
     /usr/include/bullet
+    /usr/include/cjson
 )
 
 LINK_LIBRARIES(
@@ -24,6 +25,7 @@ LINK_LIBRARIES(
     BulletDynamics
     BulletCollision
     LinearMath
+    cjson
 )
 
 ADD_EXECUTABLE(engine

@@ -1,0 +1,55 @@
+{
+    "name": "Cube & Sphere test",
+    "descr": "A test map",
+    "author": "timre13",
+    "mapFormatVer": {
+        "major": 1,
+        "minor": 0
+    },
+    "objects": [
+        {
+            "name": "Plane",
+            "modelName": "plane.obj",
+            "textureName": "floor_tiled_stone/square_floor_diff_4k.jpg",
+            "pos": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 20.0,
+                "y": 1.0,
+                "z": 20.0
+            },
+            "collShape": {
+                "type": "box",
+                "size": {
+                    "x": 10.0,
+                    "y": 0.0005,
+                    "z": 10.0
+                }
+            },
+            "mass": 0.0
+        },
+        {
+            "name": "Sphere",
+            "modelName": "ico_sphere.obj",
+            "textureName": "private/hl3.jpg",
+            "pos": {
+                "x": 3.0,
+                "y": 100.0,
+                "z": 3.0
+            },
+            "scale": {
+                "x": 4.0,
+                "y": 4.0,
+                "z": 4.0
+            },
+            "collShape": {
+                "type": "sphere",
+                "radius": 2.0
+            },
+            "mass": 10.0
+        }
+    ]
+}
