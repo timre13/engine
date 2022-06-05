@@ -37,9 +37,9 @@ private:
     std::string m_descr = "N/A";
     std::string m_author = "<unknown>";
 
-    MapFormatVer m_mapFormatVer;
+    MapFormatVer m_mapFormatVer; // Required
 
-    objectList_t m_objects;
+    objectList_t m_objects; // Required
 
 public:
     GameMap(const std::string& path);

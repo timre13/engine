@@ -3,14 +3,26 @@
 #include <cjson/cJSON.h>
 #include <fstream>
 #include <sstream>
+#include <ctype.h>
+#include <cstring>
+#include <type_traits>
 
 #define MAP_KEY_NAME                "name"
 #define MAP_KEY_DESCR               "descr"
 #define MAP_KEY_AUTHOR              "author"
 #define MAP_KEY_MAP_FORM_VER        "mapFormatVer"
-#define MAP_KEY_MAP_FORM_VER_MAJ    "major"
-#define MAP_KEY_MAP_FORM_VER_MIN    "minor"
+#define   MAP_KEY_MAP_FORM_VER_MAJ  "major"
+#define   MAP_KEY_MAP_FORM_VER_MIN  "minor"
 #define MAP_KEY_OBJS                "objects"
+#define   MAP_KEY_OBJ_NAME          "name"
+#define   MAP_KEY_OBJ_MODEL_NAME    "modelName"
+#define   MAP_KEY_OBJ_TEX_NAME      "textureName"
+#define   MAP_KEY_OBJ_FLAGS         "flags"
+#define   MAP_KEY_OBJ_POS           "pos"
+#define   MAP_KEY_OBJ_SCALE         "scale"
+#define   MAP_KEY_OBJ_MODEL_ROT     "modelRot"
+#define   MAP_KEY_OBJ_COLL_SHAPE    "collShape"
+#define   MAP_KEY_OBJ_MASS          "mass"
 
 enum class JsonType
 {
@@ -114,14 +126,77 @@ static GameMap::MapFormatVer createMapFormatVer(const cJSON* item)
 
 }
 
-static btCollisionShape* createCollShape(const cJSON* item)
+template<typename T>
+static T createVec3(const cJSON* item)
 {
-    return nullptr; // TODO
+    static_assert(std::is_base_of<glm::vec3, T>::value || std::is_base_of<btVector3, T>::value,
+            "T must be a vector3 type");
+
+    float x{};
+    {
+        const cJSON* xJson = cJSON_GetObjectItem(item, "x");
+        checkItemType<JsonType::Number>(xJson);
+        x = cJSON_GetNumberValue(xJson);
+    }
+
+    float y{};
+    {
+        const cJSON* yJson = cJSON_GetObjectItem(item, "y");
+        checkItemType<JsonType::Number>(yJson);
+        y = cJSON_GetNumberValue(yJson);
+    }
+
+    float z{};
+    {
+        const cJSON* zJson = cJSON_GetObjectItem(item, "z");
+        checkItemType<JsonType::Number>(zJson);
+        z = cJSON_GetNumberValue(zJson);
+    }
+
+    return {x, y, z};
 }
 
-static glm::vec3 createVec3(const cJSON* item)
+static btCollisionShape* createCollShape(const cJSON* item)
 {
-    return {}; // TODO
+    const cJSON* typeJson = cJSON_GetObjectItem(item, "type");
+    checkItemType<JsonType::String>(typeJson);
+    char* typeStr = cJSON_GetStringValue(typeJson);
+    assert(*typeStr != 0);
+    {
+        char* c = typeStr;
+        while (*c != 0)
+            *c++ = tolower(*c);
+    }
+
+    btCollisionShape* collShape{};
+
+    if (std::strcmp(typeStr, "sphere") == 0)
+    {
+        const cJSON* radJson = cJSON_GetObjectItem(item, "radius");
+        checkItemType<JsonType::Number>(radJson);
+
+        collShape = new btSphereShape{(btScalar)cJSON_GetNumberValue(radJson)};
+    }
+    else if (std::strcmp(typeStr, "box") == 0)
+    {
+        const cJSON* sizeJson = cJSON_GetObjectItem(item, "size");
+        checkItemType<JsonType::Object>(sizeJson);
+
+        collShape = new btBoxShape{createVec3<btVector3>(sizeJson)};
+    }
+    else
+    {
+        throw std::runtime_error{std::string("Invalid collision shape: \"")+typeStr+'"'};
+    }
+
+    free(typeStr);
+    return collShape;
+}
+
+static GameObject::flag_t createFlag(const cJSON* item)
+{
+    (void)item;
+    return GameObject::defaultFlags; // TODO
 }
 
 static std::string readFile(const std::string& path)
@@ -167,145 +242,6 @@ static std::string mapFormatVerToStr(const GameMap::MapFormatVer& val)
 
 GameMap::GameMap(const std::string& path)
 {
-#if 0 // ----- TEST -----
-    static constexpr float floorScale = 20.0f;
-    //int x = 0;
-    //int y = 0;
-    //for (int x{-100}; x <= 100; ++x)
-    //{
-    //    for (int y{-100}; y <= 100; ++y)
-    //    {
-            m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
-                    .objName = "Plane",
-                    .modelName = "plane.obj",
-                    .textureName = "floor_tiled_stone/square_floor_diff_4k.jpg",
-                    .pos = {
-                        //x*floorScale,
-                        0.0f,
-                        0.0f,
-                        //y*floorScale,
-                        0.0f,
-                    },
-                    .scale = {
-                        floorScale,
-                        1.0f,
-                        floorScale,
-                    },
-                    .collShape{new btBoxShape{btVector3{floorScale/2, .0005f, floorScale/2}}},
-                    .mass = 0.f,
-            }});
-    //    }
-    //}
-
-    //m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
-    //        .objName = "Teapot 1",
-    //        .modelName = "teapot.obj",
-    //        .textureName = "concrete/4K-concrete_50_basecolor.png",
-    //        .pos = {
-    //            2.5f,
-    //            100.0f,
-    //            2.3f,
-    //        },
-    //        .scale = {
-    //            //0.05f,
-    //            //0.05f,
-    //            //0.05f,
-    //            1.0f,
-    //            1.0f,
-    //            1.0f,
-    //        },
-    //        .collShape = new btBoxShape{btVector3{1.f, 1.f, 1.f}},
-    //        //.collShape = new btSphereShape{0.5f},
-    //        .mass = 1.f,
-    //}});
-
-    //m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
-    //        .objName = "Chair",
-    //        .modelName = "chair.obj",
-    //        .textureName = "afromosia/2K_afromosia_basecolor.png",
-    //        .pos = {
-    //            2.0f,
-    //            0.0f,
-    //            4.0f,
-    //        },
-    //        .scale = {
-    //            1.0f,
-    //            1.0f,
-    //            1.0f,
-    //        },
-    //}});
-
-    for (int x{}; x < 6; ++x)
-    {
-        for (int z{}; z < 6; ++z)
-        {
-            for (int y{}; y < 10; ++y)
-            {
-                m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
-                        .objName = "Cube",
-                        .modelName = "cube.obj",
-                        .textureName = "private/gaben.jpeg",
-                        .pos = {
-                            0.0f+x*1.01f,
-                            0.0f+y*1.01f,
-                            0.0f+z*1.01f,
-                        },
-                        .scale = {
-                            1.0f,
-                            1.0f,
-                            1.0f,
-                        },
-                        .modelRotDeg = {
-                            90.0f,
-                            90.0f,
-                            0.0f,
-                        },
-                        .collShape{new btBoxShape{btVector3{.5f, .5f, .5f}}},
-                        .mass = 1.f,
-                }});
-            }
-#if 0
-        }
-    }
-#endif
-
-    m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
-            .objName = "Sphere",
-            .modelName = "ico_sphere.obj",
-            .textureName = "private/hl3.jpg",
-            .pos = {
-                3.0f,
-                100.0f,
-                3.0f,
-            },
-            .scale = {
-                4.0f,
-                4.0f,
-                4.0f,
-            },
-            .collShape{new btSphereShape{1.85f}},
-            .mass = 10.0f,
-    }});
-
-    m_objects.push_back(std::unique_ptr<ObjectDescr>{new ObjectDescr{
-            .objName = "Quake Guy",
-            .modelName = "private/player.obj",
-            .textureName = "private/player_0.png",
-            .pos = {
-                2.0f,
-                11.0f,
-                0.0f,
-            },
-            .scale = {
-                0.05f,
-                0.05f,
-                0.05f,
-            },
-            .collShape{new btBoxShape{{0.6f, 1.2f, 0.4f}}},
-            .mass=1.0f,
-    }});
-#endif
-
     Logger::log << "Loading map: \"" << path << '"' << Logger::End;
 
     const std::string fileContent = readFile(path);
@@ -354,7 +290,69 @@ GameMap::GameMap(const std::string& path)
     const cJSON* obj{};
     cJSON_ArrayForEach(obj, objs)
     {
+        checkItemType<JsonType::Object>(obj);
+
+        ObjectDescr* newObj = new ObjectDescr{}; // Do not free, it will be moved to a smart ptr
+
+        if (const cJSON* nameJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_NAME))
+        {
+            checkItemType<JsonType::String>(nameJson);
+            newObj->objName = cJSON_GetStringValue(nameJson);
+        }
+
+        {
+            const cJSON* modelNameJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_MODEL_NAME);
+            checkItemType<JsonType::String>(modelNameJson);
+            newObj->modelName = cJSON_GetStringValue(modelNameJson);
+        }
+
+        {
+            const cJSON* texNameJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_TEX_NAME);
+            checkItemType<JsonType::String>(texNameJson);
+            newObj->textureName = cJSON_GetStringValue(texNameJson);
+        }
+
+        if (const cJSON* flagsJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_FLAGS))
+        {
+            checkItemType<JsonType::String>(flagsJson);
+            newObj->flags = createFlag(flagsJson);
+        }
+
+        {
+            const cJSON* posJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_POS);
+            checkItemType<JsonType::Object>(posJson);
+            newObj->pos = createVec3<glm::vec3>(posJson);
+        }
+
+        if (const cJSON* scaleJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_SCALE))
+        {
+            checkItemType<JsonType::Object>(scaleJson);
+            newObj->scale = createVec3<glm::vec3>(scaleJson); // TODO: Check if values are positive
+        }
+
+        if (const cJSON* modelRotJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_MODEL_ROT))
+        {
+            checkItemType<JsonType::Object>(modelRotJson);
+            newObj->modelRotDeg = createVec3<glm::vec3>(modelRotJson); // TODO: Check if values are positive
+        }
+
+        if (const cJSON* collShapeJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_COLL_SHAPE))
+        {
+            checkItemType<JsonType::Object>(collShapeJson);
+            newObj->collShape.reset(createCollShape(collShapeJson));
+        }
+
+        if (const cJSON* massJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_MASS))
+        {
+            checkItemType<JsonType::Number>(massJson);
+            // TODO: Support constant: STATIC
+            newObj->mass = cJSON_GetNumberValue(massJson); // TODO: Check if value is positive
+        }
+
+        m_objects.emplace_back(newObj);
     }
+
+    cJSON_free(json);
 
     Logger::log << "Loaded map" << Logger::End;
     Logger::verb << "----- Map info -----" << '\n';
