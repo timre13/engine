@@ -88,6 +88,12 @@ static void checkItemType(const cJSON* item)
             +itemStr+'\'');
 }
 
+static void checkNumNonNeg(float val)
+{
+    if (val < 0)
+        throw std::runtime_error{"Expected a non-negative number, got: "+std::to_string(val)};
+}
+
 static GameMap::MapFormatVer createMapFormatVer(const cJSON* item)
 {
     checkItemType<JsonType::Object>(item);
@@ -106,6 +112,7 @@ static GameMap::MapFormatVer createMapFormatVer(const cJSON* item)
             throw std::runtime_error{MAP_KEY_MAP_FORM_VER ":" MAP_KEY_MAP_FORM_VER_MAJ
                 ": Expected value of type int, got float"};
         }
+        checkNumNonNeg(num);
         major = num;
     }
 
@@ -119,6 +126,7 @@ static GameMap::MapFormatVer createMapFormatVer(const cJSON* item)
             throw std::runtime_error{MAP_KEY_MAP_FORM_VER ":" MAP_KEY_MAP_FORM_VER_MIN
                 ": Expected value of type int, got float"};
         }
+        checkNumNonNeg(num);
         minor = num;
     }
 
@@ -127,7 +135,7 @@ static GameMap::MapFormatVer createMapFormatVer(const cJSON* item)
 }
 
 template<typename T>
-static T createVec3(const cJSON* item)
+static T createVec3(const cJSON* item, bool allowNegative=true)
 {
     static_assert(std::is_base_of<glm::vec3, T>::value || std::is_base_of<btVector3, T>::value,
             "T must be a vector3 type");
@@ -137,6 +145,8 @@ static T createVec3(const cJSON* item)
         const cJSON* xJson = cJSON_GetObjectItem(item, "x");
         checkItemType<JsonType::Number>(xJson);
         x = cJSON_GetNumberValue(xJson);
+        if (!allowNegative)
+            checkNumNonNeg(x);
     }
 
     float y{};
@@ -144,6 +154,8 @@ static T createVec3(const cJSON* item)
         const cJSON* yJson = cJSON_GetObjectItem(item, "y");
         checkItemType<JsonType::Number>(yJson);
         y = cJSON_GetNumberValue(yJson);
+        if (!allowNegative)
+            checkNumNonNeg(y);
     }
 
     float z{};
@@ -151,6 +163,8 @@ static T createVec3(const cJSON* item)
         const cJSON* zJson = cJSON_GetObjectItem(item, "z");
         checkItemType<JsonType::Number>(zJson);
         z = cJSON_GetNumberValue(zJson);
+        if (!allowNegative)
+            checkNumNonNeg(z);
     }
 
     return {x, y, z};
@@ -174,15 +188,17 @@ static btCollisionShape* createCollShape(const cJSON* item)
     {
         const cJSON* radJson = cJSON_GetObjectItem(item, "radius");
         checkItemType<JsonType::Number>(radJson);
+        const double rad = cJSON_GetNumberValue(radJson);
+        checkNumNonNeg(rad);
 
-        collShape = new btSphereShape{(btScalar)cJSON_GetNumberValue(radJson)};
+        collShape = new btSphereShape{(btScalar)rad};
     }
     else if (std::strcmp(typeStr, "box") == 0)
     {
         const cJSON* sizeJson = cJSON_GetObjectItem(item, "size");
         checkItemType<JsonType::Object>(sizeJson);
 
-        collShape = new btBoxShape{createVec3<btVector3>(sizeJson)};
+        collShape = new btBoxShape{createVec3<btVector3>(sizeJson, false)};
     }
     else
     {
@@ -327,13 +343,13 @@ GameMap::GameMap(const std::string& path)
         if (const cJSON* scaleJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_SCALE))
         {
             checkItemType<JsonType::Object>(scaleJson);
-            newObj->scale = createVec3<glm::vec3>(scaleJson); // TODO: Check if values are positive
+            newObj->scale = createVec3<glm::vec3>(scaleJson, false);
         }
 
         if (const cJSON* modelRotJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_MODEL_ROT))
         {
             checkItemType<JsonType::Object>(modelRotJson);
-            newObj->modelRotDeg = createVec3<glm::vec3>(modelRotJson); // TODO: Check if values are positive
+            newObj->modelRotDeg = createVec3<glm::vec3>(modelRotJson, false);
         }
 
         if (const cJSON* collShapeJson = cJSON_GetObjectItem(obj, MAP_KEY_OBJ_COLL_SHAPE))
@@ -346,7 +362,8 @@ GameMap::GameMap(const std::string& path)
         {
             checkItemType<JsonType::Number>(massJson);
             // TODO: Support constant: STATIC
-            newObj->mass = cJSON_GetNumberValue(massJson); // TODO: Check if value is positive
+            newObj->mass = cJSON_GetNumberValue(massJson);
+            checkNumNonNeg(newObj->mass);
         }
 
         m_objects.emplace_back(newObj);
