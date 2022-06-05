@@ -105,7 +105,7 @@ int main()
 
     std::vector<std::unique_ptr<GameObject>> gameObjects;
     {
-        GameMap map{"../maps/cube_sphere_test.json"};
+        GameMap map{"../maps/test.json"};
         // Note: `objdescr->collShape` will be cleared here
         for (const auto& objdescr : map.getObjects())
         {

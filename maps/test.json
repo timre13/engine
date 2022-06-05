@@ -1,0 +1,56 @@
+{
+    "name": "Test",
+    "descr": "A test map",
+    "author": "timre13",
+    "mapFormatVer": {
+        "major": 1,
+        "minor": 0
+    },
+    "objects": [
+        {
+            "name": "Plane",
+            "modelName": "plane.obj",
+            "textureName": "floor_tiled_stone/square_floor_diff_4k.jpg",
+            "pos": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 20.0,
+                "y": 1.0,
+                "z": 20.0
+            },
+            "collShape": {
+                "type": "box",
+                "size": {
+                    "x": 10.0,
+                    "y": 0.0005,
+                    "z": 10.0
+                }
+            },
+            "mass": 0.0
+        },
+        {
+            "name": "Bucket",
+            "modelName": "bucket.obj",
+            "textureName": "bucket/Bucket3Albedo.png",
+            "pos": {
+                "x": 0.0,
+                "y": 0.3,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "collShape": {
+                "type": "cylinder",
+                "radius": 0.108,
+                "height": 0.105
+            },
+            "mass": 0.8
+        }
+    ]
+}

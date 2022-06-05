@@ -200,6 +200,20 @@ static btCollisionShape* createCollShape(const cJSON* item)
 
         collShape = new btBoxShape{createVec3<btVector3>(sizeJson, false)};
     }
+    else if (std::strcmp(typeStr, "cylinder") == 0)
+    {
+        const cJSON* radJson = cJSON_GetObjectItem(item, "radius");
+        checkItemType<JsonType::Number>(radJson);
+        const double rad = cJSON_GetNumberValue(radJson);
+        checkNumNonNeg(rad);
+
+        const cJSON* heightJson = cJSON_GetObjectItem(item, "height");
+        checkItemType<JsonType::Number>(heightJson);
+        const double height = cJSON_GetNumberValue(heightJson);
+        checkNumNonNeg(height);
+
+        collShape = new btCylinderShape{{rad, height, rad}};
+    }
     else
     {
         throw std::runtime_error{std::string("Invalid collision shape: \"")+typeStr+'"'};
