@@ -18,6 +18,7 @@
 #include "ui/Button.h"
 #include "ui/colors.h"
 #include "PhysicsWorld.h"
+#include "FileCache.h"
 
 #define MOUSE_SENS 0.1f
 #define USE_VSYNC 1
@@ -61,7 +62,6 @@ static UI::Window* createBuildMenuWin(std::shared_ptr<UI::OverlayRenderer> olren
 }
 */
 
-
 int main()
 {
     SDL_Window* window;
@@ -84,17 +84,12 @@ int main()
     camera.setFovDeg(45.0f);
     camera.updateShaderUniforms(shader.getId());
 
-    std::map<std::string, std::shared_ptr<Model>>       modelCache;
-    std::map<std::string, std::shared_ptr<Texture>>     textureCache;
-    {
-        auto placeHolderTex = std::make_shared<Texture>();
-        if (placeHolderTex->open(ASSET_DIR_TEXTURES"/placeholder.png"))
-        {
-            Logger::err << "Failed to load placeholder texture" << Logger::End;
-            return 1;
-        }
-        textureCache.insert({"", std::move(placeHolderTex)});
-    }
+    static constexpr auto modelAssetDir = ASSET_DIR_MODELS;
+    static constexpr auto modelPlaceholderFilename = std::string_view{};
+    FileCache<Model, modelAssetDir, modelPlaceholderFilename> modelCache;
+    static constexpr auto textureAssetDir = ASSET_DIR_TEXTURES;
+    static constexpr auto texturePlaceholderFilename = std::string_view{"placeholder.png"};
+    FileCache<Texture, textureAssetDir, texturePlaceholderFilename> textureCache;
 
     auto overlayRenderer = std::make_shared<UI::OverlayRenderer>();
     if (overlayRenderer->construct("../assets/crosshair.obj"))
@@ -109,51 +104,8 @@ int main()
         // Note: `objdescr->collShape` will be cleared here
         for (const auto& objdescr : map.getObjects())
         {
-            std::shared_ptr<Model> model{};
-            {
-                const auto& modelName = objdescr->modelName;
-
-                auto modelit = modelCache.find(modelName);
-                if (modelit == modelCache.end())
-                {
-                    Logger::log << "Model \"" << modelName << "\" is NOT in the cache, loading" << Logger::End;
-                    // Load the model if not found in the model cache
-                    model = modelCache.insert({modelName, std::make_shared<Model>(ASSET_DIR_MODELS"/"+modelName)}).first->second;
-                }
-                else
-                {
-                    //Logger::verb << "Model \"" << modelName << "\" is in the cache" << Logger::End;
-                    model = modelit->second;
-                }
-            }
-
-            std::shared_ptr<Texture> texture{};
-            {
-                const auto& textureName = objdescr->textureName;
-
-                auto texit = textureCache.find(textureName);
-                if (texit == textureCache.end())
-                {
-                    Logger::log << "Texture \"" << textureName << "\" is NOT in the cache, loading" << Logger::End;
-                    // Load the texture if not found in the texture cache
-                    auto tex = std::make_shared<Texture>();
-                    if (tex->open(ASSET_DIR_TEXTURES"/"+textureName)) // Try to open texture
-                    {
-                        texture = textureCache.find("")->second; // Use placeholder texture if failed
-                        assert(texture);
-                        Logger::warn << "Using placeholder texture for this object" << Logger::End;
-                    }
-                    else
-                    {
-                        texture = textureCache.insert({textureName, tex}).first->second;
-                    }
-                }
-                else
-                {
-                    //Logger::verb << "Texture \"" << textureName << "\" is in the cache" << Logger::End;
-                    texture = texit->second;
-                }
-            }
+            std::shared_ptr<Model> model = modelCache.open(objdescr->modelName);
+            std::shared_ptr<Texture> texture = textureCache.open(objdescr->textureName);
 
             const glm::vec3 mRotRad = {
                 glm::radians(objdescr->modelRotDeg.x),
