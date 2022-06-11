@@ -3,6 +3,7 @@
 #include "types.h"
 #include <GL/glew.h>
 #include <GL/gl.h>
+#include <cassert>
 #include <string>
 
 class Texture final
@@ -48,7 +49,11 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, verticalWrapMode);
     }
 
-    inline void bind() { glBindTexture(GL_TEXTURE_2D, m_textureIndex); }
+    inline void bind()
+    {
+        assert(m_state == State::Ok);
+        glBindTexture(GL_TEXTURE_2D, m_textureIndex);
+    }
 
     ~Texture();
 };

@@ -11,17 +11,6 @@
 #include "memory.h"
 #include "Logger.h"
 
-static void genEmptyImg(unsigned char** dataP, int* widthP, int* heightP, int* chanCountP)
-{
-    Logger::verb << "Generating empty image" << Logger::End;
-
-    *dataP = (unsigned char*)calloc(4, sizeof(unsigned char));
-    memset(*dataP, 0xff, 4);
-    *widthP = 1;
-    *heightP = 1;
-    *chanCountP = 4;
-}
-
 Texture::Texture(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT*/, int verticalWrapMode/*=GL_REPEAT*/)
 {
     open(filePath, horizontalWrapMode, verticalWrapMode);
@@ -29,32 +18,24 @@ Texture::Texture(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT
 
 int Texture::open(const std::string& filePath, int horizontalWrapMode/*=GL_REPEAT*/, int verticalWrapMode/*=GL_REPEAT*/)
 {
+    assert(!filePath.empty());
     unsigned char* textureData;
     int channelCount;
-    if (filePath.empty())
+    Logger::verb << "Reading image: " << filePath << Logger::End;
+
+    stbi_set_flip_vertically_on_load(1);
+    textureData = stbi_load(filePath.c_str(), &m_widthPx, &m_heightPx, &channelCount, 4);
+    if (textureData)
     {
-        genEmptyImg(&textureData, &m_widthPx, &m_heightPx, &channelCount);
+        Logger::verb << "Opened image (size: " << m_widthPx << 'x' << m_heightPx
+            << ", channels: " << channelCount << ')' << Logger::End;
         m_state = State::Ok;
     }
     else
     {
-        Logger::verb << "Reading image: " << filePath << Logger::End;
-
-        stbi_set_flip_vertically_on_load(1);
-        textureData = stbi_load(filePath.c_str(), &m_widthPx, &m_heightPx, &channelCount, 4);
-        if (textureData)
-        {
-            Logger::verb << "Opened image (size: " << m_widthPx << 'x' << m_heightPx
-                << ", channels: " << channelCount << ')' << Logger::End;
-            m_state = State::Ok;
-        }
-        else
-        {
-            Logger::err << "Failed to open image: " << filePath << ": " << stbi_failure_reason() << Logger::End;
-            genEmptyImg(&textureData, &m_widthPx, &m_heightPx, &channelCount);
-            m_state = State::OpenFailed;
-            return 1;
-        }
+        Logger::err << "Failed to open image: " << filePath << ": " << stbi_failure_reason() << Logger::End;
+        m_state = State::OpenFailed;
+        return 1;
     }
 
     glGenTextures(1, &m_textureIndex);
