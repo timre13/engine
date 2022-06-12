@@ -1,5 +1,6 @@
 #include "GameMap.h"
 #include "Logger.h"
+#include "assets.h"
 #include <cjson/cJSON.h>
 #include <fstream>
 #include <sstream>
@@ -170,6 +171,17 @@ static T createVec3(const cJSON* item, bool allowNegative=true)
     return {x, y, z};
 }
 
+static btCollisionShape* createTriangleMeshCollShape(const std::vector<float>& points)
+{
+    btCollisionShape* shape = new btConvexHullShape{};
+
+    for (size_t i{}; i < points.size()/3; ++i)
+        dynamic_cast<btConvexHullShape*>(shape)->addPoint({points[i*3+0], points[i*3+1], points[i*3+2]}, false);
+    dynamic_cast<btConvexHullShape*>(shape)->recalcLocalAabb();
+
+    return shape;
+}
+
 static btCollisionShape* createCollShape(const cJSON* item)
 {
     const cJSON* typeJson = cJSON_GetObjectItem(item, "type");
@@ -213,6 +225,21 @@ static btCollisionShape* createCollShape(const cJSON* item)
         checkNumNonNeg(height);
 
         collShape = new btCylinderShape{{rad, height, rad}};
+    }
+    else if (std::strcmp(typeStr, "mesh") == 0)
+    {
+        const cJSON* pathJson = cJSON_GetObjectItem(item, "path");
+        checkItemType<JsonType::String>(pathJson);
+
+        // TODO: Use file cache
+
+        std::vector<float> verts, uvs, norms;
+        auto model = Model{};
+        const int stat = model.parseObjFile(
+                std::string(ASSET_DIR_COLL_MESHES)+"/"+cJSON_GetStringValue(pathJson),
+                &verts, &uvs, &norms);
+        assert(stat == 0);
+        collShape = createTriangleMeshCollShape(verts);
     }
     else
     {

@@ -28,7 +28,11 @@ private:
     uint m_vaoIndex{};
     uint m_vboIndex{};
 
-    int _parseObjFile(const std::string& filename);
+    void _copyVertData(
+            const std::vector<float>& verts,
+            const std::vector<float>& uvs,
+            const std::vector<float>& normals
+            );
 
     friend class GameObject;
     friend class UI::OverlayRenderer;
@@ -43,6 +47,13 @@ public:
     // Move ctor, move assignment op
     Model(Model&& another);
     Model& operator=(Model&& another);
+
+    int parseObjFile(
+            const std::string& filePath,
+            std::vector<float>* outVerts,
+            std::vector<float>* outUvs,
+            std::vector<float>* outNorms
+            );
 
     int open(const std::string& filePath);
     int fromData(float* values, size_t numOfVertices);

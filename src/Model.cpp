@@ -82,8 +82,17 @@ Model& Model::operator=(Model&& another)
     return *this;
 }
 
-int Model::_parseObjFile(const std::string& filePath)
+int Model::parseObjFile(
+        const std::string& filePath,
+        std::vector<float>* outVerts,
+        std::vector<float>* outUvs,
+        std::vector<float>* outNorms
+        )
 {
+    assert(outVerts);
+    assert(outUvs);
+    assert(outNorms);
+
     std::string fileContents;
     if (readFileContents(filePath, &fileContents))
     {
@@ -94,9 +103,6 @@ int Model::_parseObjFile(const std::string& filePath)
     std::vector<float> verticesTmp;
     std::vector<float> uvCoordsTmp;
     std::vector<float> normalsTmp;
-    std::vector<float> vertices;
-    std::vector<float> uvCoords;
-    std::vector<float> normals;
 
     for (size_t i{}; i < fileContents.size();)
     {
@@ -237,14 +243,14 @@ int Model::_parseObjFile(const std::string& filePath)
                 Logger::verb << "FaceVertex(" << vertexI << ", " << uvCoordI << ", " << normalI << ")" << Logger::End;
 #endif
 
-                vertices.push_back(verticesTmp[(vertexI-1)*3+0]);
-                vertices.push_back(verticesTmp[(vertexI-1)*3+1]);
-                vertices.push_back(verticesTmp[(vertexI-1)*3+2]);
-                uvCoords.push_back(uvCoordsTmp[(uvCoordI-1)*2+0]);
-                uvCoords.push_back(uvCoordsTmp[(uvCoordI-1)*2+1]);
-                normals.push_back(normalsTmp[(normalI-1)*3+0]);
-                normals.push_back(normalsTmp[(normalI-1)*3+1]);
-                normals.push_back(normalsTmp[(normalI-1)*3+2]);
+                outVerts->push_back(verticesTmp[(vertexI-1)*3+0]);
+                outVerts->push_back(verticesTmp[(vertexI-1)*3+1]);
+                outVerts->push_back(verticesTmp[(vertexI-1)*3+2]);
+                outUvs->push_back(uvCoordsTmp[(uvCoordI-1)*2+0]);
+                outUvs->push_back(uvCoordsTmp[(uvCoordI-1)*2+1]);
+                outNorms->push_back(normalsTmp[(normalI-1)*3+0]);
+                outNorms->push_back(normalsTmp[(normalI-1)*3+1]);
+                outNorms->push_back(normalsTmp[(normalI-1)*3+2]);
             }
             getToken();
             if (token.size())
@@ -268,9 +274,9 @@ int Model::_parseObjFile(const std::string& filePath)
     }
 
     Logger::verb << "Parsed a model with "
-        << vertices.size()/3 << " vertices, "
-        << uvCoords.size()/2 << " UV coordinates and "
-        << normals.size()/3 << " normals"
+        << outVerts->size()/3 << " vertices, "
+        << outUvs->size()/2 << " UV coordinates and "
+        << outNorms->size()/3 << " normals"
         << Logger::End;
 
 #if MODEL_FILE_PARSER_VERBOSE
@@ -290,9 +296,18 @@ int Model::_parseObjFile(const std::string& filePath)
     Logger::verb << Logger::End;
 #endif
 
-    m_numOfVertices = vertices.size()/3;
+    m_numOfVertices = outVerts->size()/3;
+    return 0;
+}
+
+void Model::_copyVertData(
+        const std::vector<float>& verts,
+        const std::vector<float>& uvs,
+        const std::vector<float>& normals
+        )
+{
     m_vboData = new float[m_numOfVertices*8];
-    for (size_t i{}; i < vertices.size()/3; ++i)
+    for (size_t i{}; i < verts.size()/3; ++i)
     {
         /*
          * Vertex data layout:
@@ -302,16 +317,15 @@ int Model::_parseObjFile(const std::string& filePath)
          */
 
         const size_t arrayI = i*8;
-        m_vboData[arrayI+0] = vertices[i*3+0];
-        m_vboData[arrayI+1] = vertices[i*3+1];
-        m_vboData[arrayI+2] = vertices[i*3+2];
-        m_vboData[arrayI+3] = uvCoords[i*2+0];
-        m_vboData[arrayI+4] = uvCoords[i*2+1];
+        m_vboData[arrayI+0] = verts[i*3+0];
+        m_vboData[arrayI+1] = verts[i*3+1];
+        m_vboData[arrayI+2] = verts[i*3+2];
+        m_vboData[arrayI+3] = uvs[i*2+0];
+        m_vboData[arrayI+4] = uvs[i*2+1];
         m_vboData[arrayI+5] = normals[i+0];
         m_vboData[arrayI+6] = normals[i+1];
         m_vboData[arrayI+7] = normals[i+2];
     }
-    return 0;
 }
 
 static void configureVertexData(uint* vaoIndexPtr, uint* vboIndexPtr, size_t numOfVertices, float* vboData)
@@ -353,9 +367,11 @@ static void configureVertexData(uint* vaoIndexPtr, uint* vboIndexPtr, size_t num
 
 int Model::open(const std::string& filePath)
 {
-    if (_parseObjFile(filePath))
+    std::vector<float> verts, uvs, norms;
+    if (parseObjFile(filePath, &verts, &uvs, &norms))
         return 1;
 
+    _copyVertData(verts, uvs, norms);
     configureVertexData(&m_vaoIndex, &m_vboIndex, m_numOfVertices, m_vboData);
 
     m_state = State::Ok;

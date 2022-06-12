@@ -8,11 +8,35 @@
     },
     "objects": [
         {
-            "name": "Plane",
+            "name": "Plane 1",
             "modelName": "plane.obj",
             "textureName": "floor_tiled_stone/square_floor_diff_4k.jpg",
             "pos": {
                 "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 20.0,
+                "y": 1.0,
+                "z": 20.0
+            },
+            "collShape": {
+                "type": "box",
+                "size": {
+                    "x": 10.0,
+                    "y": 0.0005,
+                    "z": 10.0
+                }
+            },
+            "mass": 0.0
+        },
+        {
+            "name": "Plane 2",
+            "modelName": "plane.obj",
+            "textureName": "floor_tiled_stone/square_floor_diff_4k.jpg",
+            "pos": {
+                "x": 20.0,
                 "y": 0.0,
                 "z": 0.0
             },
@@ -51,6 +75,26 @@
                 "height": 0.105
             },
             "mass": 0.8
+        },
+        {
+            "name": "Floppa",
+            "modelName": "private/floppa/flopp.obj",
+            "textureName": "private/floppa/floppa.jpg",
+            "pos": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "collShape": {
+                "type": "mesh",
+                "path": "private/floppa/flopp.obj"
+            },
+            "mass": 1.2
         }
     ]
 }
