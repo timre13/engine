@@ -7,6 +7,7 @@
 #define INITIAL_WIN_H 1000
 //#define WINDOW_FULLSCREEN_MODE SDL_WINDOW_FULLSCREEN_DESKTOP
 #define WINDOW_FULLSCREEN_MODE 0
+#define MULTISAMPLE_SAMPLE_COUNT 8
 
 static void GLAPIENTRY _debugMessageCallback(
         GLenum source, GLenum type, GLuint, GLenum severity,
@@ -55,6 +56,16 @@ static void GLAPIENTRY _debugMessageCallback(
 namespace Init
 {
 
+static int getSdlGlAttr(SDL_GLattr attr)
+{
+    int out{};
+    if (int stat = SDL_GL_GetAttribute(attr, &out))
+    {
+        Logger::err << "Failed to get SDL GL attribute value: " << attr << ": " << SDL_GetError() << Logger::End;
+    }
+    return out;
+}
+
 int initVideo(SDL_Window** winOut, SDL_GLContext* contOut, bool* isVSyncActiveOut)
 {
     if (SDL_Init(SDL_INIT_VIDEO))
@@ -63,6 +74,16 @@ int initVideo(SDL_Window** winOut, SDL_GLContext* contOut, bool* isVSyncActiveOu
         return 1;
     }
     Logger::verb << "Initialized SDL" << Logger::End;
+
+    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
+     || SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3)
+     || SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+     || SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MULTISAMPLE_SAMPLE_COUNT)
+     )
+    {
+        Logger::err << "Failed to set context attributes: " << SDL_GetError() << Logger::End;
+        return 1;
+    }
 
     *winOut = SDL_CreateWindow(
             "OpenGL Engine",
@@ -77,13 +98,6 @@ int initVideo(SDL_Window** winOut, SDL_GLContext* contOut, bool* isVSyncActiveOu
     }
     Logger::verb << "Created window" << Logger::End;
 
-    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
-     || SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3)
-     || SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE))
-    {
-        Logger::err << "Failed to set context attributes: " << SDL_GetError() << Logger::End;
-        return 1;
-    }
     *contOut = SDL_GL_CreateContext(*winOut);
     if (!*contOut)
     {
@@ -104,6 +118,15 @@ int initVideo(SDL_Window** winOut, SDL_GLContext* contOut, bool* isVSyncActiveOu
     }
 #endif
     Logger::verb << "Created and set up context" << Logger::End;
+
+    {
+        const int sampleCnt = getSdlGlAttr(SDL_GL_MULTISAMPLESAMPLES);
+        Logger::log << "Multisample sample count: " << sampleCnt << Logger::End;
+        if (sampleCnt != MULTISAMPLE_SAMPLE_COUNT)
+        {
+            Logger::err << "Failed to set correct sample count" << Logger::End;
+        }
+    }
 
     glewExperimental = true;
     auto glewInitStatus = glewInit();
@@ -127,6 +150,8 @@ int initVideo(SDL_Window** winOut, SDL_GLContext* contOut, bool* isVSyncActiveOu
     glEnable(GL_DEPTH_TEST);
 
     glEnable(GL_CULL_FACE);
+
+    glEnable(GL_MULTISAMPLE);
 
     glLineWidth(3.0f);
 

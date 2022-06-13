@@ -124,6 +124,7 @@ int main()
     bool isWireframeMode = false;
     bool isBlendingOn = true;
     bool isFaceCullingOn = true;
+    bool isMultisamplingOn = true;
     struct DbgMenuItem
     {
         std::string name;
@@ -150,6 +151,13 @@ int main()
             else glDisable(GL_CULL_FACE);
         }, [&](){
             return isFaceCullingOn;
+        }},
+        {"Multisampling", [&](){
+            isMultisamplingOn = !isMultisamplingOn;
+            if (isMultisamplingOn) glEnable(GL_MULTISAMPLE);
+            else glDisable(GL_MULTISAMPLE);
+        }, [&](){
+            return isMultisamplingOn;
         }},
         {"Bullet: Wireframe mode", [&](){
             pworld.setDbgMode(pworld.getDbgMode() ^ btIDebugDraw::DBG_DrawWireframe);
